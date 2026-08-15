@@ -30,6 +30,9 @@ const _imp = new THREE.Vector3()
 
 const AXLE_XS = [T.axleX, -T.axleX]
 
+const BODY_YELLOW = '#f0a93c'
+const BODY_YELLOW_DARK = '#c9882a'
+
 export default function Truck() {
   const bodyRef = useRef<RapierRigidBody>(null)
   const { rapier } = useRapier()
@@ -168,81 +171,159 @@ export default function Truck() {
       <CuboidCollider args={[2.05, 0.35, 0.9]} position={[0, 0, 0]} friction={0.4} />
       {/* Low-slung ballast keeps the center of mass down for stability */}
       <CuboidCollider args={[1.2, 0.1, 0.5]} position={[0, -0.28, 0]} density={6} friction={0.4} />
-      <CuboidCollider args={[0.62, 0.5, 0.8]} position={[1.42, 0.85, 0]} friction={0.3} />
+      {/* Nose + cab block */}
+      <CuboidCollider args={[0.34, 0.45, 0.75]} position={[1.81, 0.25, 0]} friction={0.3} />
+      <CuboidCollider args={[0.38, 0.32, 0.38]} position={[1.45, 1.05, -0.35]} friction={0.3} />
+      {/* Rock-shed canopy over the cab — spilled rocks slide off, not through */}
+      <CuboidCollider
+        args={[0.7, 0.05, 0.88]}
+        position={[1.3, 1.6, 0]}
+        rotation={[0, 0, -0.08]}
+        friction={0.3}
+      />
       {/* Bed: floor + 4 walls (BED_BOUNDS in cargoMath.ts mirrors this) */}
       <CuboidCollider args={[1.28, 0.08, 0.88]} position={[-0.72, 0.43, 0]} friction={1.0} />
-      <CuboidCollider args={[0.08, 0.42, 0.88]} position={[0.48, 0.93, 0]} friction={0.6} />
+      <CuboidCollider args={[0.08, 0.52, 0.88]} position={[0.48, 1.02, 0]} friction={0.6} />
       <CuboidCollider args={[0.08, 0.36, 0.88]} position={[-1.92, 0.87, 0]} friction={0.6} />
       {/* Camera-side (+z) wall is lower so the cargo stays clearly visible */}
       <CuboidCollider args={[1.28, 0.24, 0.08]} position={[-0.72, 0.75, 0.8]} friction={0.6} />
       <CuboidCollider args={[1.28, 0.38, 0.08]} position={[-0.72, 0.89, -0.8]} friction={0.6} />
 
-      {/* --- Visuals --- */}
+      {/* --- Visuals: stylized quarry rigid hauler --- */}
       {/* Chassis frame */}
-      <mesh castShadow position={[0, -0.1, 0]}>
-        <boxGeometry args={[4.1, 0.5, 1.7]} />
-        <meshStandardMaterial color="#3a352f" />
+      <mesh castShadow position={[0, -0.14, 0]}>
+        <boxGeometry args={[4.3, 0.44, 1.5]} />
+        <meshStandardMaterial color="#33302b" />
       </mesh>
-      {/* Cab */}
-      <mesh castShadow position={[1.42, 0.85, 0]}>
-        <boxGeometry args={[1.24, 1.0, 1.6]} />
-        <meshStandardMaterial color="#f2a636" />
+      {/* Front bumper */}
+      <mesh castShadow position={[2.18, -0.05, 0]}>
+        <boxGeometry args={[0.18, 0.4, 1.6]} />
+        <meshStandardMaterial color="#3f3a33" />
       </mesh>
-      {/* Cab window */}
-      <mesh position={[1.95, 1.0, 0]}>
-        <boxGeometry args={[0.2, 0.5, 1.3]} />
-        <meshStandardMaterial color="#4a5a66" />
+      {/* Radiator nose (below the cab, sloped hood line) */}
+      <mesh castShadow position={[1.81, 0.28, 0]}>
+        <boxGeometry args={[0.68, 0.86, 1.5]} />
+        <meshStandardMaterial color={BODY_YELLOW} />
       </mesh>
-      {/* Headlight */}
-      <mesh position={[2.06, 0.35, 0.55]}>
-        <boxGeometry args={[0.1, 0.18, 0.24]} />
+      {/* Grille */}
+      <mesh position={[2.16, 0.22, 0]}>
+        <boxGeometry args={[0.04, 0.5, 1.1]} />
+        <meshStandardMaterial color="#4a443c" />
+      </mesh>
+      {/* Catwalk deck across the nose */}
+      <mesh castShadow position={[1.55, 0.75, 0]}>
+        <boxGeometry args={[1.25, 0.08, 1.72]} />
+        <meshStandardMaterial color={BODY_YELLOW_DARK} />
+      </mesh>
+      {/* Cab, perched high and offset to the far side */}
+      <mesh castShadow position={[1.45, 1.05, -0.38]}>
+        <boxGeometry args={[0.78, 0.62, 0.78]} />
+        <meshStandardMaterial color={BODY_YELLOW} />
+      </mesh>
+      {/* Cab glass: front and near side */}
+      <mesh position={[1.85, 1.12, -0.38]}>
+        <boxGeometry args={[0.06, 0.4, 0.66]} />
+        <meshStandardMaterial color="#3d4c58" />
+      </mesh>
+      <mesh position={[1.45, 1.12, 0.02]}>
+        <boxGeometry args={[0.6, 0.4, 0.06]} />
+        <meshStandardMaterial color="#3d4c58" />
+      </mesh>
+      {/* Exhaust stack + air cleaner on the deck's near side */}
+      <mesh castShadow position={[1.32, 1.08, 0.42]}>
+        <cylinderGeometry args={[0.06, 0.06, 0.6, 8]} />
+        <meshStandardMaterial color="#2e2a26" flatShading />
+      </mesh>
+      <mesh castShadow position={[1.72, 0.97, 0.42]}>
+        <cylinderGeometry args={[0.11, 0.11, 0.34, 8]} />
+        <meshStandardMaterial color="#4a443c" flatShading />
+      </mesh>
+      {/* Handrail along the deck edge */}
+      <mesh position={[1.55, 0.98, 0.82]}>
+        <boxGeometry args={[1.2, 0.03, 0.03]} />
+        <meshStandardMaterial color="#e8552f" />
+      </mesh>
+      {/* Headlights on the nose */}
+      <mesh position={[2.17, 0.5, 0.5]}>
+        <boxGeometry args={[0.06, 0.14, 0.22]} />
         <meshStandardMaterial color="#fff2c9" emissive="#c9b98a" emissiveIntensity={0.8} />
       </mesh>
-      <mesh position={[2.06, 0.35, -0.55]}>
-        <boxGeometry args={[0.1, 0.18, 0.24]} />
+      <mesh position={[2.17, 0.5, -0.5]}>
+        <boxGeometry args={[0.06, 0.14, 0.22]} />
         <meshStandardMaterial color="#fff2c9" emissive="#c9b98a" emissiveIntensity={0.8} />
-      </mesh>
-      {/* Bed floor + walls */}
-      <mesh castShadow position={[-0.72, 0.43, 0]}>
-        <boxGeometry args={[2.56, 0.16, 1.76]} />
-        <meshStandardMaterial color="#8a5a33" />
-      </mesh>
-      <mesh castShadow position={[0.48, 0.93, 0]}>
-        <boxGeometry args={[0.16, 0.84, 1.76]} />
-        <meshStandardMaterial color="#b06b35" />
-      </mesh>
-      <mesh castShadow position={[-1.92, 0.87, 0]}>
-        <boxGeometry args={[0.16, 0.72, 1.76]} />
-        <meshStandardMaterial color="#b06b35" />
-      </mesh>
-      <mesh castShadow position={[-0.72, 0.75, 0.8]}>
-        <boxGeometry args={[2.56, 0.48, 0.16]} />
-        <meshStandardMaterial color="#b06b35" />
-      </mesh>
-      <mesh castShadow position={[-0.72, 0.89, -0.8]}>
-        <boxGeometry args={[2.56, 0.76, 0.16]} />
-        <meshStandardMaterial color="#b06b35" />
       </mesh>
 
-      {/* Wheels (visual only) */}
+      {/* --- Dump body: flat floor, tall front wall, canopy, tapered sides --- */}
+      {/* Floor (steel interior) */}
+      <mesh castShadow position={[-0.72, 0.43, 0]}>
+        <boxGeometry args={[2.56, 0.16, 1.76]} />
+        <meshStandardMaterial color="#575047" />
+      </mesh>
+      {/* Tall front wall */}
+      <mesh castShadow position={[0.48, 1.02, 0]}>
+        <boxGeometry args={[0.16, 1.04, 1.76]} />
+        <meshStandardMaterial color={BODY_YELLOW} />
+      </mesh>
+      {/* Rock-shed canopy sloping forward over the cab */}
+      <mesh castShadow position={[1.3, 1.6, 0]} rotation={[0, 0, -0.08]}>
+        <boxGeometry args={[1.4, 0.1, 1.76]} />
+        <meshStandardMaterial color={BODY_YELLOW} />
+      </mesh>
+      {/* Rear dump lip (duck-tail) */}
+      <mesh castShadow position={[-2.1, 0.56, 0]} rotation={[0, 0, 0.4]}>
+        <boxGeometry args={[0.5, 0.1, 1.76]} />
+        <meshStandardMaterial color={BODY_YELLOW} />
+      </mesh>
+      {/* Far (-z) side: full height front section + tapered rear section */}
+      <mesh castShadow position={[-0.1, 0.95, -0.83]}>
+        <boxGeometry args={[1.16, 0.66, 0.14]} />
+        <meshStandardMaterial color={BODY_YELLOW} />
+      </mesh>
+      <mesh castShadow position={[-1.3, 0.82, -0.83]} rotation={[0, 0, 0.09]}>
+        <boxGeometry args={[1.44, 0.52, 0.14]} />
+        <meshStandardMaterial color={BODY_YELLOW} />
+      </mesh>
+      {/* Near (+z, camera) side: same profile but lower so cargo stays visible */}
+      <mesh castShadow position={[-0.1, 0.78, 0.83]}>
+        <boxGeometry args={[1.16, 0.44, 0.14]} />
+        <meshStandardMaterial color={BODY_YELLOW} />
+      </mesh>
+      <mesh castShadow position={[-1.3, 0.7, 0.83]} rotation={[0, 0, 0.07]}>
+        <boxGeometry args={[1.44, 0.36, 0.14]} />
+        <meshStandardMaterial color={BODY_YELLOW} />
+      </mesh>
+      {/* Body ribs on the near side */}
+      {[-1.5, -0.85, -0.2].map((x) => (
+        <mesh key={x} castShadow position={[x, 0.62, 0.9]}>
+          <boxGeometry args={[0.14, 0.42, 0.06]} />
+          <meshStandardMaterial color={BODY_YELLOW_DARK} />
+        </mesh>
+      ))}
+
+      {/* Wheels (visual only): single fronts, duals at the rear */}
       {[0, 1, 2, 3].map((i) => {
         const axle = i < 2 ? 0 : 1
         const side = i % 2 === 0 ? 1 : -1
+        const isRear = axle === 1
         return (
           <group
             key={i}
             ref={(el) => {
               wheelGroups.current[i] = el
             }}
-            position={[AXLE_XS[axle], -0.55, side * T.wheelZ]}
+            position={[AXLE_XS[axle], -0.42, side * T.wheelZ]}
           >
-            <mesh castShadow rotation={[Math.PI / 2, 0, 0]}>
-              <cylinderGeometry args={[T.wheelRadius, T.wheelRadius, 0.32, 14]} />
-              <meshStandardMaterial color="#2e2a26" flatShading />
-            </mesh>
-            <mesh rotation={[Math.PI / 2, 0, 0]} position={[0, 0, side * 0.17]}>
-              <cylinderGeometry args={[0.16, 0.16, 0.04, 8]} />
-              <meshStandardMaterial color="#8c8272" flatShading />
+            {(isRear ? [-0.13, 0.13] : [0]).map((dz) => (
+              <mesh key={dz} castShadow rotation={[Math.PI / 2, 0, 0]} position={[0, 0, dz]}>
+                <cylinderGeometry
+                  args={[T.wheelRadius, T.wheelRadius, isRear ? 0.24 : 0.4, 16]}
+                />
+                <meshStandardMaterial color="#2e2a26" flatShading />
+              </mesh>
+            ))}
+            <mesh rotation={[Math.PI / 2, 0, 0]} position={[0, 0, side * 0.21]}>
+              <cylinderGeometry args={[0.2, 0.2, 0.05, 8]} />
+              <meshStandardMaterial color={BODY_YELLOW_DARK} flatShading />
             </mesh>
           </group>
         )
