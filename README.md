@@ -29,13 +29,24 @@ Optional headless smoke test (requires a running dev server):
 `node scripts/smoke.mjs` — loads the game in headless Chromium, verifies the
 WebGL canvas, captures screenshots, and fails on console errors.
 
+## Controls
+
+| Key           | Action                          |
+| ------------- | ------------------------------- |
+| `W` / `↑`     | Accelerate                      |
+| `S` / `↓`     | Brake / reverse                 |
+| `A` / `←`     | Lean backward                   |
+| `D` / `→`     | Lean forward                    |
+| `R`           | Restart                         |
+| `` ` ``       | Toggle developer debug overlay  |
+
 ## Project status
 
 Checkpoint-based build in progress. See `CHECKPOINT_STATUS.md` for current
 state, architecture, and known issues.
 
-- ✅ Checkpoint 0 — engine baseline (this build)
-- ⬜ Checkpoint 1 — core-fun graybox (drivable truck + cargo)
+- ✅ Checkpoint 0 — engine baseline
+- ✅ Checkpoint 1 — core-fun graybox (this build)
 - ⬜ Checkpoint 2 — complete vertical slice
 - ⬜ Checkpoint 3 — Quarry Run course content
 - ⬜ Checkpoint 4 — presentation (art, audio, UI)

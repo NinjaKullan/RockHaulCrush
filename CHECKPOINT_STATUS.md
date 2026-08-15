@@ -1,67 +1,94 @@
 # Checkpoint Status
 
-## Current checkpoint: 0 — Baseline (awaiting approval)
+## Current checkpoint: 1 — Core-fun graybox (awaiting approval)
 
 Date: 2026-08-15
 
 ## What exists now
 
-A minimal proof scene demonstrating that the full technical baseline
-initializes correctly in the browser:
+A drivable vertical slice of the core interaction: haul 20 loose rocks over
+rough ground, a hill, and a jump without losing them.
 
-- Vite 8 + TypeScript 6 + React 19 scaffold
-- three.js 0.185 rendered through React Three Fiber 9.7
-- Rapier physics via `@react-three/rapier` 2.2 (WASM inlined — no CDN)
-- Five dynamic "proof rocks" drop onto a lit, shadowed ground slab with a
-  wedge obstacle; they bounce, roll, and settle
-- Visual baseline pass (user-requested): procedural sky, warm sun +
-  hemisphere light, distance fog, low-poly background hills, chunky clouds,
-  and a striped safety barrier establishing the quarry palette — all
-  code-generated, no assets
-- DOM overlay banner proving HTML/CSS HUD layering over the canvas
-- Vitest with 5 passing tests (star-threshold scoring rules)
-- Playwright smoke script (`scripts/smoke.mjs`): headless load, WebGL canvas
-  check, screenshots, console-error detection
+- **Truck**: single dynamic chassis rigid body, two raycast-suspension axles
+  (spring + damper applied at axle points), drive/brake/reverse forces along
+  the chassis forward axis, lean torque, low-slung ballast collider for
+  stability. Visual wheels follow suspension length and spin with speed.
+  Constrained to the x/y gameplay plane.
+- **Cargo**: 20 individually simulated rocks (convex hulls, CCD, seeded
+  shapes/placement) resting in a colliding bed (floor + 4 walls; camera-side
+  wall is lower so cargo stays visible). In-bed detection transforms each rock
+  into truck-local space and tests the bed volume (`cargoMath.ts`).
+- **Course (graybox Quarry Run)**: start pad → washboard rough section →
+  climb → plateau → descent → flat run-up → launch ramp → dip → landing flat.
+  Invisible end walls and z-plane walls keep everything recoverable.
+- **Camera**: side-following with velocity look-ahead, speed-based FOV
+  widening, snap-to-spawn on restart. Sun light tracks the truck for crisp
+  shadows everywhere.
+- **HUD**: cargo count (turns red below 12), speed, control hints, restart
+  button. **Debug overlay** on backquote (`): fps, speed, grounded, position,
+  cargo, body count, run id.
+- **Restart (R)**: remounts the whole physics world via a run-id key — no
+  duplicated bodies, verified across repeated rapid restarts.
 
 ## Commands
 
-- `npm install` — first-time setup
 - `npm run dev` — dev server at http://localhost:5173/
-- `npm test` — Vitest (5 tests passing)
+- `npm test` — Vitest (17 tests: scoring thresholds, bed-volume rules, seeded RNG)
 - `npm run build` — production build (passing)
-- `node scripts/smoke.mjs` — headless smoke test (dev server must be running)
+- `node scripts/smoke.mjs` / `node scripts/drive.mjs <outdir>` — headless
+  browser verification (server must be running)
 
-## Architecture so far
+## Architecture
 
-- `src/App.tsx` — canvas, lighting, and the Checkpoint 0 proof scene
-  (throwaway; replaced by real game systems in Checkpoint 1)
-- `src/config/gameTuning.ts` — central tuning file (gravity, timestep,
-  pixel-ratio clamp, rock count, star thresholds) + `starsForDelivered()`
-- `scripts/smoke.mjs` — headless browser verification
+- `src/config/gameTuning.ts` — all tuning: physics, truck handling,
+  suspension, cargo, camera, scoring
+- `src/game/refs.ts` — per-frame mutable channels (input, telemetry, body
+  handles) that bypass React re-render
+- `src/game/store.ts` — slow-changing UI state (zustand): run id, cargo
+  count, debug visibility
+- `src/game/Truck.tsx` — chassis body, colliders, suspension/drive/lean
+  physics (in `useBeforePhysicsStep`), visuals
+- `src/game/Rocks.tsx` — rock generation (seeded), bodies, in-bed counting
+- `src/game/cargoMath.ts` — pure bed-volume rules (unit-tested)
+- `src/game/Terrain.tsx` + `src/game/levels/quarryRun.ts` — level data
+  separated from rendering/physics
+- `src/game/CameraRig.tsx` — follow camera + tracking sun light
+- `src/game/KeyboardManager.tsx` — input mapping, browser-default suppression
+- `src/ui/HUD.tsx`, `src/ui/DebugOverlay.tsx`
 
-## Decisions recorded
+## Verified this checkpoint (headless Chromium)
 
-- **2.5D side-view** per the brief; physics constrained to one plane starting
-  Checkpoint 1.
-- **Gravity −14 m/s²** (slightly stronger than Earth) for a snappier arcade
-  feel; tunable.
-- **Single-chassis arcade vehicle** planned for Checkpoint 1 — one dynamic
-  rigid body with forces/torque and visual wheels, not four simulated wheels.
-- **Reference images are not in the repo** (`references/` is absent). Art
-  direction proceeds from the written description in the build brief. If the
-  four screenshots are pushed later, they will be consulted from Checkpoint 3+.
-- Rapier WASM is inlined by `@react-three/rapier`, keeping the game fully
-  offline at the cost of bundle size.
+- 20/20 rocks at spawn; cargo survives rough section and hill at full
+  throttle; ramp jump sheds 3–4 rocks (visible, physical, no instability)
+- Reverse caps at −6 m/s, forward at 15 m/s, braking stops from full speed
+  in <1 s
+- 4 rapid restarts: cargo returns to 20/20, body count constant (22), no
+  console errors
+- Production build and all 17 tests pass
 
-## Known issues (none blocking)
+## Known issues / honest notes (none blocking for CP1)
 
-- Bundle is ~3.3 MB minified (~1.1 MB gzip) — dominated by three.js + Rapier
-  WASM. Acceptable for a local/offline game; code-splitting can come later if
-  a hosted build ever needs it.
-- Physics scene is a throwaway proof; no gameplay yet by design.
+- **Course is short**: full-throttle run takes ~15–25 s. The 60–90 s target
+  applies to the finished Quarry Run; the course gets extended and populated
+  in Checkpoints 2–3.
+- **No delivery zone yet** — the course ends at an invisible wall (CP2).
+- The rough section barely threatens cargo at full speed; bumps may need to
+  be meaner. Subjective tuning feedback wanted.
+- Airborne lean was not visually verified headless (slow software-renderer
+  timing); the code path is shared with verified controls.
+- Headless FPS is ~25–30 under SwiftShader software rendering; that is not
+  representative of a real GPU. No real-hardware frame-rate claim is made.
 
-## Next checkpoint: 1 — Core-fun graybox
+## Subjective feedback wanted from playtest
 
-Side-following camera, graybox terrain (rough section, hill, ramp), drivable
-truck (accelerate/brake/reverse/lean), 20 rocks in a visible bed, cargo count,
-reliable restart, developer debug overlay.
+1. Does the truck feel heavy-but-responsive, or too twitchy / too sluggish?
+2. Is acceleration too strong? (0→54 km/h is quick; `accel` in gameTuning)
+3. Do the rocks feel alive in the bed — do you *see* them shift on bumps?
+4. Is the ramp jump fun? Does lean control in the air feel useful?
+5. Camera: comfortable at speed? Enough look-ahead?
+
+## Next checkpoint: 2 — Complete vertical slice
+
+60–90 s course, checkpoints + recovery, timer, delivery zone, cargo states
+(recoverable/lost), Cargo Magnet, scoring + stars, title/countdown/pause/
+results/replay states, tests for cargo transitions and scoring.
