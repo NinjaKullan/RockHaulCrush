@@ -34,11 +34,11 @@ export default function KeyboardManager() {
           break
         case 'KeyA':
         case 'ArrowLeft':
-          input.leanBack = pressed
+          input.steerLeft = pressed
           break
         case 'KeyD':
         case 'ArrowRight':
-          input.leanForward = pressed
+          input.steerRight = pressed
           break
       }
     }

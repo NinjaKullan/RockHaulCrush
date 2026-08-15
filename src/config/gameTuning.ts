@@ -30,8 +30,17 @@ export const truckTuning = {
   reverseAccel: 9,
   /** Horizontal velocity damping per second when grounded with no input. */
   rollingDrag: 0.65,
-  /** Lean control strength (torque per unit mass, scaled by dt). */
-  leanTorque: 7.5,
+  /** Lateral steering acceleration, m/s². */
+  lateralAccel: 24,
+  /** Lateral velocity damping per second (snappy dodge feel). */
+  lateralDamping: 3.4,
+  /** Max sideways speed, m/s. */
+  maxLateralSpeed: 7,
+  /** Truck center is softly kept within ±this z (hard walls sit further out). */
+  roadHalfWidth: 2.9,
+  /** Airborne auto-level: pitch-correcting torque strength and damping. */
+  airStabilizeStrength: 9,
+  airStabilizeDamping: 2.2,
   /** Rigid-body angular damping — resists endless spinning without killing bounce. */
   angularDamping: 1.4,
   linearDamping: 0.04,
@@ -67,17 +76,23 @@ export const cargoTuning = {
 } as const
 
 export const cameraTuning = {
-  distance: 13,
-  height: 3.9,
-  /** Seconds of velocity to look ahead. */
-  lookAhead: 0.55,
+  /** Chase camera: distance behind the truck. */
+  back: 11,
+  /** Height above the truck. */
+  height: 4.4,
+  /** How far ahead of the truck the camera aims. */
+  lookAhead: 7,
+  lookUp: 1.2,
+  /** Fraction of truck z the camera position/aim follow (parallax feel). */
+  zFollow: 0.55,
+  zLook: 0.85,
   /** Follow smoothing rate (higher = snappier). */
-  followRate: 4.0,
+  followRate: 4.5,
   heightRate: 3.0,
-  baseFov: 48,
+  baseFov: 53,
   /** Extra FOV per m/s of speed, capped below. */
-  fovPerSpeed: 0.5,
-  maxFovBoost: 9,
+  fovPerSpeed: 0.45,
+  maxFovBoost: 8,
 } as const
 
 export const gameplayTuning = {

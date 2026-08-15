@@ -39,9 +39,9 @@ export default function App() {
         dpr={[1, renderTuning.maxPixelRatio]}
         camera={{
           position: [
-            truckTuning.spawn[0],
+            truckTuning.spawn[0] - cameraTuning.back,
             truckTuning.spawn[1] + cameraTuning.height,
-            cameraTuning.distance,
+            0,
           ],
           fov: cameraTuning.baseFov,
         }}

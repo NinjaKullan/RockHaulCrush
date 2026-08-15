@@ -113,16 +113,56 @@ export const boundaryWalls: GroundBox[] = [
   { c: [275, 4], half: [0.5, 5], rot: 0, color: '', zHalf: Z_HALF, invisible: true },
 ]
 
-/** Invisible z-plane walls that keep loose rocks near the gameplay plane. */
+/** Invisible walls at the road edges: truck dodges within them, rocks stay in. */
 export const zWalls = {
   x: 128,
   halfLength: 148,
   height: 12,
-  z: 1.9,
+  z: 3.9,
   halfThickness: 0.3,
 } as const
 
+/** Drivable road half-width (visual slabs extend a little further). */
+export const roadHalfWidth = 3.9
+
 export const levelBounds = { minX: -18, maxX: 274 } as const
+
+/** Piecewise-linear drive-surface profile (mirrors the slab list above). */
+const SURFACE_PROFILE: [number, number][] = [
+  [-18, 0],
+  [30, 0],
+  [44, 2.6],
+  [52, 2.6],
+  [66, 0.6],
+  [80, 0.6],
+  [86.5, 2.35],
+  [86.51, -1.4],
+  [92.5, -1.4],
+  [95.6, 0],
+  [142, 0],
+  [164, 3.4],
+  [172, 3.4],
+  [185, 0.8],
+  [212, 0.8],
+  [219, 2.7],
+  [219.01, -1.6],
+  [228.6, -1.6],
+  [233.4, 0.1],
+  [274, 0],
+]
+
+/** Approximate ground top at x (ignores washboard bumps and whoops). */
+export function groundTopAt(x: number): number {
+  if (x <= SURFACE_PROFILE[0][0]) return SURFACE_PROFILE[0][1]
+  for (let i = 1; i < SURFACE_PROFILE.length; i++) {
+    const [x1, y1] = SURFACE_PROFILE[i]
+    if (x <= x1) {
+      const [x0, y0] = SURFACE_PROFILE[i - 1]
+      return y0 + ((y1 - y0) * (x - x0)) / (x1 - x0)
+    }
+  }
+  return SURFACE_PROFILE[SURFACE_PROFILE.length - 1][1]
+}
 
 /**
  * Checkpoints: recovery points along the course. The truck respawns at the
@@ -150,34 +190,41 @@ export const mudRegions: { x0: number; x1: number; groundY: number }[] = [
   { x0: 246, x1: 254, groundY: 0 }, // final grind guarding the delivery pad
 ]
 
-/** Rolling-barrel hazard on the first climb (they roll down toward the truck). */
+/** Rolling-barrel hazard on the first climb: barrels pick a lane, dodge them. */
 export const barrelHazard = {
   spawn: { x: 43.2, y: 3.8 },
+  lanes: [-2.2, 0, 2.2],
 } as const
 
-/** Telegraphed falling rocks over the second washboard. */
-export const fallingRockSpawns: { x: number; groundY: number; phase: number }[] = [
-  { x: 127, groundY: 0.4, phase: 0 },
-  { x: 135, groundY: 0.4, phase: 3 },
+/** Telegraphed falling rocks over the second washboard (fixed, learnable lanes). */
+export const fallingRockSpawns: { x: number; z: number; groundY: number; phase: number }[] = [
+  { x: 127, z: -1.6, groundY: 0.4, phase: 0 },
+  { x: 135, z: 1.6, groundY: 0.4, phase: 3 },
 ]
 
-/** Swinging crane load guarding the final approach. */
+/** Crane load swinging ACROSS the road (z-axis) on the final approach. */
 export const craneHazard = {
   x: 242,
   groundY: 0,
 } as const
 
-/** Pushable A-frame construction barriers. */
-export const barrierPositions: { x: number; y: number }[] = [
-  { x: 77.5, y: 1.1 }, // before the first ramp
-  { x: 130.5, y: 0.7 }, // mid rockfall zone
-  { x: 138.5, y: 0.7 },
+/** Pushable A-frame barriers, placed to leave a drivable gap to steer through. */
+export const barrierPositions: { x: number; y: number; z: number }[] = [
+  // Before the first ramp: blocks left + center, gap on the right
+  { x: 77.5, y: 1.1, z: -1.9 },
+  { x: 77.5, y: 1.1, z: -0.1 },
+  // Rockfall zone: gap on the left…
+  { x: 130.5, y: 0.7, z: 1.9 },
+  { x: 130.5, y: 0.7, z: 0.1 },
+  // …then gap on the right
+  { x: 138.5, y: 0.7, z: -1.9 },
+  { x: 138.5, y: 0.7, z: -0.1 },
 ]
 
-/** Route signage: chevrons say "send it", warnings say "think first". */
+/** Route signage on the roadside, facing the approaching player. */
 export const signs: { x: number; groundY: number; kind: 'chevron' | 'warn' }[] = [
   { x: 78.5, groundY: 0.6, kind: 'chevron' }, // first ramp
-  { x: 28.5, groundY: 0, kind: 'warn' }, // barrels roll down the climb ahead
+  { x: 28.5, groundY: 0, kind: 'warn' }, // barrels on the climb ahead
   { x: 121, groundY: 0, kind: 'warn' }, // rockfall zone
   { x: 210.5, groundY: 0.8, kind: 'chevron' }, // big ramp
   { x: 237.5, groundY: 0, kind: 'warn' }, // crane + mud

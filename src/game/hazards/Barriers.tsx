@@ -12,8 +12,7 @@ export default function Barriers() {
         <RigidBody
           key={i}
           colliders={false}
-          position={[b.x, b.y, 0]}
-          enabledTranslations={[true, true, false]}
+          position={[b.x, b.y, b.z]}
           density={0.5}
           linearDamping={0.6}
           angularDamping={0.8}

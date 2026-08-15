@@ -21,13 +21,13 @@ export function TitleScreen() {
           <b>{scoringTuning.starThresholds[2]}</b> for three stars.
         </p>
         <p>
-          Hazards can't be steered around — <b>time them</b>: wait out the barrels, read the
-          warnings, pass the crane on its upswing. Spilled rocks aren't gone: drive close and
-          hit <b>Space</b> — the Cargo Magnet pulls them back aboard (3 charges).
+          <b>Steer around</b> barrels, barriers, and falling rocks — and time the swinging
+          crane. Spilled rocks aren't gone: drive close and hit <b>Space</b> — the Cargo
+          Magnet pulls them back aboard (3 charges).
         </p>
         <p className="controls-line">
-          <b>W/↑</b> drive · <b>S/↓</b> brake/reverse · <b>A/←</b> lean back ·{' '}
-          <b>D/→</b> lean forward · <b>Space</b> cargo magnet · <b>R</b> recover ·{' '}
+          <b>W/↑</b> drive · <b>S/↓</b> brake/reverse · <b>A/←</b> steer left ·{' '}
+          <b>D/→</b> steer right · <b>Space</b> cargo magnet · <b>R</b> recover ·{' '}
           <b>Esc</b> pause
         </p>
       </div>
@@ -79,8 +79,8 @@ export function PauseMenu() {
         ⟲ Restart Run
       </button>
       <p className="controls-line">
-        <b>W/↑</b> drive · <b>S/↓</b> brake/reverse · <b>A/←</b> lean back · <b>D/→</b> lean
-        forward · <b>Space</b> magnet · <b>R</b> recover · <b>Esc</b> resume
+        <b>W/↑</b> drive · <b>S/↓</b> brake/reverse · <b>A/←</b> steer left · <b>D/→</b> steer
+        right · <b>Space</b> magnet · <b>R</b> recover · <b>Esc</b> resume
       </p>
     </div>
   )

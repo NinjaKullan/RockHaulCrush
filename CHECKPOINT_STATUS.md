@@ -1,8 +1,25 @@
 # Checkpoint Status
 
-## Current checkpoint: 3 — Quarry Run content (awaiting approval)
+## Current checkpoint: 3 (revised) — Chase-camera pivot + Quarry Run content (awaiting approval)
 
 Date: 2026-08-15
+
+## Design pivot (user-directed)
+
+Playtesting showed the side-view timing game fought player instinct: everyone
+wants to dodge. The game is now a **chase-camera lane-dodging hauler**:
+
+- Camera sits behind and above the truck, looking down the road corridor —
+  cargo is fully visible in the bed from behind.
+- `A/D` steer left/right across a ~7.8 m-wide road (soft spring at the edges,
+  hard invisible walls beyond). Cosmetic roll into turns.
+- Lean controls removed; jumps auto-level with a gentle airborne stabilizer.
+- Hazards became spatial: barrels pick one of three lanes (seeded), falling
+  rocks land on fixed learnable lanes marked by their rings, barriers block
+  part of the road leaving a gap, the crane load now swings ACROSS the road.
+  Mud and ramps stay full-width speed decisions.
+- Physics was already fully 3D — cargo, magnet, checkpoints, scoring, timer
+  all carried over unchanged. Recovery re-centers the truck (z=0).
 
 ## What exists now
 

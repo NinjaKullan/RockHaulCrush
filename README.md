@@ -35,8 +35,8 @@ WebGL canvas, captures screenshots, and fails on console errors.
 | ------------- | ------------------------------- |
 | `W` / `↑`     | Accelerate                      |
 | `S` / `↓`     | Brake / reverse                 |
-| `A` / `←`     | Lean backward                   |
-| `D` / `→`     | Lean forward                    |
+| `A` / `←`     | Steer left                      |
+| `D` / `→`     | Steer right                     |
 | `Space`       | Cargo Magnet                    |
 | `R`           | Recover at latest checkpoint    |
 | `Esc`         | Pause / resume                  |

@@ -37,19 +37,20 @@ export default function Crane() {
     if (!body) return
     clock.current += world.timestep
     const theta = swingAngle(clock.current)
+    // Pendulum swings ACROSS the road (y-z plane): dodge by timing the sweep.
     body.setNextKinematicTranslation({
-      x: craneHazard.x + CR.cableLength * Math.sin(theta),
+      x: craneHazard.x,
       y: pivotY - CR.cableLength * Math.cos(theta),
-      z: 0,
+      z: -CR.cableLength * Math.sin(theta),
     })
-    _quat.setFromEuler(_euler.set(0, 0, theta))
+    _quat.setFromEuler(_euler.set(theta, 0, 0))
     body.setNextKinematicRotation(_quat)
   })
 
   // Cable + block visuals hang from the pivot and mirror the physics formula.
   useFrame(() => {
     const g = pendulumVisual.current
-    if (g) g.rotation.z = swingAngle(clock.current)
+    if (g) g.rotation.x = swingAngle(clock.current)
   })
 
   return (
@@ -80,22 +81,22 @@ export default function Crane() {
         </mesh>
       </group>
 
-      {/* Crane tower + jib (background scenery, off the play plane) */}
-      <group position={[craneHazard.x, craneHazard.groundY, -3.6]}>
+      {/* Crane tower on the roadside, jib reaching over the road */}
+      <group position={[craneHazard.x, craneHazard.groundY, -6.8]}>
         <mesh castShadow position={[0, 3.2, 0]}>
           <boxGeometry args={[0.7, 6.4, 0.7]} />
           <meshStandardMaterial color="#e8a33d" />
         </mesh>
-        <mesh castShadow position={[0, 6.3, 1.6]}>
-          <boxGeometry args={[0.5, 0.45, 4.6]} />
+        <mesh castShadow position={[0, 6.1, 3.6]}>
+          <boxGeometry args={[0.5, 0.45, 7.6]} />
           <meshStandardMaterial color="#e8a33d" />
         </mesh>
-        <mesh position={[0, 6.3, -1.4]}>
-          <boxGeometry args={[0.5, 0.45, 1.4]} />
+        <mesh position={[0, 6.1, -1.6]}>
+          <boxGeometry args={[0.5, 0.45, 1.8]} />
           <meshStandardMaterial color="#c9882a" />
         </mesh>
         {/* Cab */}
-        <mesh castShadow position={[0, 5.6, 0.5]}>
+        <mesh castShadow position={[0, 5.4, 0.7]}>
           <boxGeometry args={[0.8, 0.8, 0.9]} />
           <meshStandardMaterial color="#f2b53a" />
         </mesh>

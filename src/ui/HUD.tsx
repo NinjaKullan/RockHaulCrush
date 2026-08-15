@@ -67,7 +67,7 @@ export default function HUD() {
         <span className="hud-speed-unit"> km/h</span>
       </div>
       <div className="hud-hints">
-        <b>W/↑</b> drive&ensp;<b>S/↓</b> brake&ensp;<b>A/←</b>·<b>D/→</b> lean&ensp;
+        <b>W/↑</b> drive&ensp;<b>S/↓</b> brake&ensp;<b>A/←</b>·<b>D/→</b> steer&ensp;
         <b>Space</b> magnet&ensp;<b>R</b> recover&ensp;<b>Esc</b> pause
       </div>
       <button className="hud-restart" onClick={pause}>

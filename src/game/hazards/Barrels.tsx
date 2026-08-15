@@ -1,7 +1,8 @@
 import { BallCollider, RigidBody, useBeforePhysicsStep, type RapierRigidBody } from '@react-three/rapier'
-import { useRef } from 'react'
-import { barrelTuning as B } from '../../config/gameTuning'
+import { useMemo, useRef } from 'react'
+import { barrelTuning as B, cargoTuning } from '../../config/gameTuning'
 import { barrelHazard } from '../levels/quarryRun'
+import { mulberry32 } from '../rng'
 
 /**
  * Rolling barrels released at the top of the first climb on a fixed, staggered
@@ -17,6 +18,8 @@ export default function Barrels() {
     Array.from({ length: B.count }, (_, i) => (i * B.period) / B.count + 1.5),
   )
   const ages = useRef(Array.from({ length: B.count }, () => 0))
+  /** Seeded lane picker — deterministic per run, varied per launch. */
+  const laneRng = useMemo(() => mulberry32(cargoTuning.seed + 77), [])
 
   useBeforePhysicsStep((world) => {
     const dt = world.timestep
@@ -28,9 +31,11 @@ export default function Barrels() {
       if (timers.current[i] > 0) continue
 
       if (ages.current[i] === 0) {
-        // Launch: place at the climb top, rolling down toward -x.
+        // Launch: place at the climb top in a random lane, rolling down toward -x.
+        const lane =
+          barrelHazard.lanes[Math.floor(laneRng() * barrelHazard.lanes.length)]
         body.setEnabled(true)
-        body.setTranslation({ x: barrelHazard.spawn.x, y: barrelHazard.spawn.y, z: 0 }, true)
+        body.setTranslation({ x: barrelHazard.spawn.x, y: barrelHazard.spawn.y, z: lane }, true)
         body.setLinvel({ x: -B.launchSpeed, y: 0, z: 0 }, true)
         body.setAngvel({ x: 0, y: 0, z: B.launchSpeed / B.radius }, true)
         ages.current[i] = dt

@@ -39,13 +39,13 @@ const HINTS: Hint[] = [
   {
     id: 'barrels',
     priority: 1,
-    text: '⚠ Barrels roll down this climb on a rhythm — wait for one to pass, then go!',
+    text: '⚠ Barrels incoming — steer left/right (A/D) to dodge them!',
     test: (c) => c.x > 22 && c.x < 30,
   },
   {
     id: 'barriers',
     priority: 1,
-    text: '🚧 Barriers are pushable — nudge through slowly, or smash them and risk the cargo.',
+    text: '🚧 Barriers ahead — steer through the gap, or push through slowly.',
     test: (c) => c.x > 72 && c.x < 77,
   },
   {
@@ -57,13 +57,13 @@ const HINTS: Hint[] = [
   {
     id: 'rockfall',
     priority: 1,
-    text: '⚠ Falling rocks ahead — the amber rings mark where they land. Don’t linger on them!',
+    text: '⚠ Falling rocks — the amber rings mark where they land. Steer around them!',
     test: (c) => c.x > 114 && c.x < 121,
   },
   {
     id: 'crane',
     priority: 1,
-    text: '⚠ Swinging crane load — watch the rhythm and pass right after it sweeps away.',
+    text: '⚠ Swinging crane load — time your pass or hug the road edge.',
     test: (c) => c.x > 230 && c.x < 237,
   },
 ]

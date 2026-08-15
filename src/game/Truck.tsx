@@ -46,6 +46,7 @@ export default function Truck() {
   const wheelToi = useRef([T.suspensionRest * 0.8, T.suspensionRest * 0.8])
   const wheelSpin = useRef(0)
   const wheelGroups = useRef<(THREE.Group | null)[]>([])
+  const visualRoll = useRef<THREE.Group>(null)
 
   useEffect(() => {
     gameRefs.truck = bodyRef.current
@@ -141,14 +142,24 @@ export default function Truck() {
       }
     }
 
-    // --- Lean control (works grounded and airborne)
-    if (controlsLive) {
-      let torque = 0
-      if (input.leanBack) torque += T.leanTorque
-      if (input.leanForward) torque -= T.leanTorque
-      if (torque !== 0) {
-        body.applyTorqueImpulse({ x: 0, y: 0, z: torque * mass * dt }, true)
-      }
+    // --- Lateral steering (chase view: D = screen right = +z)
+    const steer = (input.steerRight ? 1 : 0) - (input.steerLeft ? 1 : 0)
+    if (controlsLive && steer !== 0 && Math.abs(lv.z) < T.maxLateralSpeed) {
+      const authority = grounded ? 1 : 0.4
+      body.applyImpulse({ x: 0, y: 0, z: steer * mass * T.lateralAccel * authority * dt }, true)
+    }
+    // Lateral damping + soft road-edge spring keep the dodge snappy and bounded.
+    let zForce = -lv.z * mass * T.lateralDamping
+    if (Math.abs(t.z) > T.roadHalfWidth) {
+      zForce -= (t.z - Math.sign(t.z) * T.roadHalfWidth) * mass * 30
+    }
+    body.applyImpulse({ x: 0, y: 0, z: zForce * dt }, true)
+
+    // --- Airborne auto-level so jumps land clean without a lean control
+    if (!grounded) {
+      const pitch = Math.asin(THREE.MathUtils.clamp(_fwd.y, -1, 1))
+      const torque = -pitch * T.airStabilizeStrength - av.z * T.airStabilizeDamping
+      body.applyTorqueImpulse({ x: 0, y: 0, z: torque * mass * dt }, true)
     }
 
     telemetry.speed = vAlong
@@ -162,6 +173,13 @@ export default function Truck() {
 
   // Visual wheels: follow suspension length, spin with ground speed.
   useFrame((_, delta) => {
+    // Cosmetic roll into turns (colliders stay level).
+    const body = bodyRef.current
+    const roll = visualRoll.current
+    if (body && roll) {
+      const vz = body.linvel().z
+      roll.rotation.x += (THREE.MathUtils.clamp(vz * 0.045, -0.13, 0.13) - roll.rotation.x) * 0.15
+    }
     wheelSpin.current -= (telemetry.speed / T.wheelRadius) * delta
     for (let i = 0; i < 4; i++) {
       const g = wheelGroups.current[i]
@@ -178,7 +196,7 @@ export default function Truck() {
       ref={bodyRef}
       colliders={false}
       position={[T.spawn[0], T.spawn[1], 0]}
-      enabledTranslations={[true, true, false]}
+      enabledTranslations={[true, true, true]}
       enabledRotations={[false, false, true]}
       angularDamping={T.angularDamping}
       linearDamping={T.linearDamping}
@@ -202,11 +220,12 @@ export default function Truck() {
       <CuboidCollider args={[1.28, 0.08, 0.88]} position={[-0.72, 0.43, 0]} friction={1.0} />
       <CuboidCollider args={[0.08, 0.52, 0.88]} position={[0.48, 1.02, 0]} friction={0.6} />
       <CuboidCollider args={[0.08, 0.36, 0.88]} position={[-1.92, 0.87, 0]} friction={0.6} />
-      {/* Camera-side (+z) wall is lower so the cargo stays clearly visible */}
-      <CuboidCollider args={[1.28, 0.3, 0.08]} position={[-0.72, 0.81, 0.8]} friction={0.6} />
+      {/* Symmetric side walls — the chase camera sees into the bed from behind */}
+      <CuboidCollider args={[1.28, 0.38, 0.08]} position={[-0.72, 0.89, 0.8]} friction={0.6} />
       <CuboidCollider args={[1.28, 0.38, 0.08]} position={[-0.72, 0.89, -0.8]} friction={0.6} />
 
-      {/* --- Visuals: stylized quarry rigid hauler --- */}
+      {/* --- Visuals: stylized quarry rigid hauler (group rolls into turns) --- */}
+      <group ref={visualRoll}>
       {/* Chassis frame — slim, so the tires dominate like the real machines */}
       <mesh castShadow position={[0, -0.06, 0]}>
         <boxGeometry args={[4.3, 0.3, 1.4]} />
@@ -322,13 +341,13 @@ export default function Truck() {
         <boxGeometry args={[1.44, 0.52, 0.14]} />
         <meshStandardMaterial color={BODY_YELLOW} />
       </mesh>
-      {/* Near (+z, camera) side: same profile but lower so cargo stays visible */}
-      <mesh castShadow position={[-0.1, 0.85, 0.83]}>
-        <boxGeometry args={[1.16, 0.54, 0.14]} />
+      {/* Near (+z) side: mirrored profile — symmetric for the chase view */}
+      <mesh castShadow position={[-0.1, 0.95, 0.83]}>
+        <boxGeometry args={[1.16, 0.66, 0.14]} />
         <meshStandardMaterial color={BODY_YELLOW} />
       </mesh>
-      <mesh castShadow position={[-1.3, 0.76, 0.83]} rotation={[0, 0, 0.07]}>
-        <boxGeometry args={[1.44, 0.44, 0.14]} />
+      <mesh castShadow position={[-1.3, 0.82, 0.83]} rotation={[0, 0, 0.09]}>
+        <boxGeometry args={[1.44, 0.52, 0.14]} />
         <meshStandardMaterial color={BODY_YELLOW} />
       </mesh>
       {/* Body ribs on the near side */}
@@ -381,6 +400,7 @@ export default function Truck() {
           </group>
         )
       })}
+      </group>
     </RigidBody>
   )
 }

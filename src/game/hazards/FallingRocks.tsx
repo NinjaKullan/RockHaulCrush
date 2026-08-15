@@ -30,7 +30,7 @@ export default function FallingRocks() {
         dropped.current[i] = true
         const s = fallingRockSpawns[i]
         body.setEnabled(true)
-        body.setTranslation({ x: s.x, y: s.groundY + F.dropHeight, z: 0 }, true)
+        body.setTranslation({ x: s.x, y: s.groundY + F.dropHeight, z: s.z }, true)
         body.setLinvel({ x: 0, y: 0, z: 0 }, true)
         body.setAngvel({ x: 0, y: 0, z: 1.5 }, true)
       } else if (!inFallWindow && dropped.current[i]) {
@@ -64,7 +64,7 @@ export default function FallingRocks() {
               bodies.current[i] = el
             }}
             colliders="hull"
-            position={[s.x, s.groundY + F.dropHeight, 0]}
+            position={[s.x, s.groundY + F.dropHeight, s.z]}
             enabledTranslations={[true, true, false]}
             friction={0.9}
             restitution={0.1}
@@ -82,7 +82,7 @@ export default function FallingRocks() {
               markers.current[i] = el
             }}
             visible={false}
-            position={[s.x, s.groundY + 0.5, 0]}
+            position={[s.x, s.groundY + 0.5, s.z]}
           >
             <torusGeometry args={[0.85, 0.12, 8, 20]} />
             <meshStandardMaterial
@@ -94,7 +94,7 @@ export default function FallingRocks() {
             />
           </mesh>
           {/* Perched crag the rocks fall from — visual anchor overhead */}
-          <mesh position={[s.x, s.groundY + F.dropHeight + 1.2, -1.5]} rotation={[0.3, 0.5, 0]}>
+          <mesh position={[s.x, s.groundY + F.dropHeight + 1.2, s.z]} rotation={[0.3, 0.5, 0]}>
             <dodecahedronGeometry args={[1.6, 0]} />
             <meshStandardMaterial color="#9a7a50" flatShading />
           </mesh>

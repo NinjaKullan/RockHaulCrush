@@ -5,6 +5,7 @@ import {
   checkpoints,
   deliveryZone,
   groundBoxes,
+  groundTopAt,
   mudRegions,
   signs,
   zWalls,
@@ -38,7 +39,7 @@ function MudPatch({ x0, x1, groundY }: { x0: number; x1: number; groundY: number
 /** Route sign: chevron (full speed ahead) or warning diamond (hazard ahead). */
 function SignPost({ x, groundY, kind }: { x: number; groundY: number; kind: 'chevron' | 'warn' }) {
   return (
-    <group position={[x, groundY, -4.2]}>
+    <group position={[x, groundY, -5.4]} rotation={[0, -Math.PI / 2, 0]}>
       <mesh castShadow position={[0, 0.85, 0]}>
         <cylinderGeometry args={[0.07, 0.09, 1.7, 6]} />
         <meshStandardMaterial color="#5a4632" />
@@ -76,19 +77,42 @@ function SignPost({ x, groundY, kind }: { x: number; groundY: number; kind: 'che
   )
 }
 
-/** Checkpoint flag pole (visual only). */
+/** Checkpoint gate: flag poles on both road edges. */
 function CheckpointFlag({ x, y }: { x: number; y: number }) {
   const groundY = y - 1.5
   return (
-    <group position={[x, groundY, -4.5]}>
-      <mesh castShadow position={[0, 1.4, 0]}>
-        <cylinderGeometry args={[0.06, 0.08, 2.8, 6]} />
-        <meshStandardMaterial color="#5a4632" />
-      </mesh>
-      <mesh castShadow position={[0.38, 2.5, 0]}>
-        <boxGeometry args={[0.7, 0.45, 0.04]} />
-        <meshStandardMaterial color="#7ec850" />
-      </mesh>
+    <group position={[x, groundY, 0]}>
+      {[-4.5, 4.5].map((z) => (
+        <group key={z} position={[0, 0, z]}>
+          <mesh castShadow position={[0, 1.4, 0]}>
+            <cylinderGeometry args={[0.06, 0.08, 2.8, 6]} />
+            <meshStandardMaterial color="#5a4632" />
+          </mesh>
+          <mesh castShadow position={[0, 2.5, 0.38]} rotation={[0, Math.PI / 2, 0]}>
+            <boxGeometry args={[0.7, 0.45, 0.04]} />
+            <meshStandardMaterial color="#7ec850" />
+          </mesh>
+        </group>
+      ))}
+    </group>
+  )
+}
+
+/** Striped curb posts marking the drivable road edges. */
+function CurbPosts() {
+  const posts: { x: number; y: number; z: number }[] = []
+  for (let x = -12; x <= 268; x += 12) {
+    const y = groundTopAt(x)
+    posts.push({ x, y, z: 4.3 }, { x, y, z: -4.3 })
+  }
+  return (
+    <group>
+      {posts.map((p, i) => (
+        <mesh key={i} castShadow position={[p.x, p.y + 0.35, p.z]}>
+          <boxGeometry args={[0.16, 0.7, 0.16]} />
+          <meshStandardMaterial color={i % 2 === 0 ? '#e8552f' : '#fbe8c8'} />
+        </mesh>
+      ))}
     </group>
   )
 }
@@ -156,6 +180,7 @@ export default function Terrain() {
       {signs.map((s, i) => (
         <SignPost key={i} {...s} />
       ))}
+      <CurbPosts />
       <DeliveryZone />
     </>
   )

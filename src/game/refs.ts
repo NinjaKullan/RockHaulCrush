@@ -11,15 +11,15 @@ import type { RockState } from './cargoRules'
 export const input = {
   throttle: false,
   brake: false,
-  leanBack: false,
-  leanForward: false,
+  steerLeft: false,
+  steerRight: false,
 }
 
 export function resetInput() {
   input.throttle = false
   input.brake = false
-  input.leanBack = false
-  input.leanForward = false
+  input.steerLeft = false
+  input.steerRight = false
 }
 
 /** Live handles to physics objects, set on mount and cleared on unmount. */
