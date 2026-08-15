@@ -14,6 +14,10 @@ initializes correctly in the browser:
 - Rapier physics via `@react-three/rapier` 2.2 (WASM inlined — no CDN)
 - Five dynamic "proof rocks" drop onto a lit, shadowed ground slab with a
   wedge obstacle; they bounce, roll, and settle
+- Visual baseline pass (user-requested): procedural sky, warm sun +
+  hemisphere light, distance fog, low-poly background hills, chunky clouds,
+  and a striped safety barrier establishing the quarry palette — all
+  code-generated, no assets
 - DOM overlay banner proving HTML/CSS HUD layering over the canvas
 - Vitest with 5 passing tests (star-threshold scoring rules)
 - Playwright smoke script (`scripts/smoke.mjs`): headless load, WebGL canvas
