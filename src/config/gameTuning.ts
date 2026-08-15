@@ -36,7 +36,7 @@ export const truckTuning = {
   angularDamping: 1.4,
   linearDamping: 0.04,
 
-  wheelRadius: 0.5,
+  wheelRadius: 0.6,
   /** Axle x-offset from chassis center (front = +, rear = −). */
   axleX: 1.22,
   /** Visual wheel z-offset from center (each side). */

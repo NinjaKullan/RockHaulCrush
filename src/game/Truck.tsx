@@ -190,9 +190,9 @@ export default function Truck() {
       <CuboidCollider args={[1.28, 0.38, 0.08]} position={[-0.72, 0.89, -0.8]} friction={0.6} />
 
       {/* --- Visuals: stylized quarry rigid hauler --- */}
-      {/* Chassis frame */}
-      <mesh castShadow position={[0, -0.14, 0]}>
-        <boxGeometry args={[4.3, 0.44, 1.5]} />
+      {/* Chassis frame — slim, so the tires dominate like the real machines */}
+      <mesh castShadow position={[0, -0.06, 0]}>
+        <boxGeometry args={[4.3, 0.3, 1.4]} />
         <meshStandardMaterial color="#33302b" />
       </mesh>
       {/* Front bumper */}
@@ -205,11 +205,23 @@ export default function Truck() {
         <boxGeometry args={[0.68, 0.86, 1.5]} />
         <meshStandardMaterial color={BODY_YELLOW} />
       </mesh>
+      {/* Dark hood accent panel (Volvo-style) */}
+      <mesh castShadow position={[1.81, 0.735, 0]}>
+        <boxGeometry args={[0.72, 0.07, 1.32]} />
+        <meshStandardMaterial color="#2f2b28" />
+      </mesh>
       {/* Grille */}
       <mesh position={[2.16, 0.22, 0]}>
         <boxGeometry args={[0.04, 0.5, 1.1]} />
         <meshStandardMaterial color="#4a443c" />
       </mesh>
+      {/* Access-ladder rungs on the nose */}
+      {[0.02, 0.2, 0.38].map((y) => (
+        <mesh key={y} position={[2.17, y, 0.05]}>
+          <boxGeometry args={[0.04, 0.05, 0.5]} />
+          <meshStandardMaterial color="#2f2b28" />
+        </mesh>
+      ))}
       {/* Catwalk deck across the nose */}
       <mesh castShadow position={[1.55, 0.75, 0]}>
         <boxGeometry args={[1.25, 0.08, 1.72]} />
@@ -220,14 +232,24 @@ export default function Truck() {
         <boxGeometry args={[0.78, 0.62, 0.78]} />
         <meshStandardMaterial color={BODY_YELLOW} />
       </mesh>
-      {/* Cab glass: front and near side */}
-      <mesh position={[1.85, 1.12, -0.38]}>
-        <boxGeometry args={[0.06, 0.4, 0.66]} />
+      {/* Cab glass: big greenhouse — front, near side, and roof edge */}
+      <mesh position={[1.85, 1.13, -0.38]}>
+        <boxGeometry args={[0.06, 0.48, 0.7]} />
         <meshStandardMaterial color="#3d4c58" />
       </mesh>
-      <mesh position={[1.45, 1.12, 0.02]}>
-        <boxGeometry args={[0.6, 0.4, 0.06]} />
+      <mesh position={[1.45, 1.13, 0.02]}>
+        <boxGeometry args={[0.68, 0.48, 0.06]} />
         <meshStandardMaterial color="#3d4c58" />
+      </mesh>
+      {/* Cab roof lip */}
+      <mesh castShadow position={[1.45, 1.39, -0.38]}>
+        <boxGeometry args={[0.86, 0.06, 0.86]} />
+        <meshStandardMaterial color={BODY_YELLOW_DARK} />
+      </mesh>
+      {/* Mirror posts */}
+      <mesh position={[1.88, 1.24, 0.06]}>
+        <boxGeometry args={[0.03, 0.22, 0.03]} />
+        <meshStandardMaterial color="#2f2b28" />
       </mesh>
       {/* Exhaust stack + air cleaner on the deck's near side */}
       <mesh castShadow position={[1.32, 1.08, 0.42]}>
@@ -264,9 +286,9 @@ export default function Truck() {
         <boxGeometry args={[0.16, 1.04, 1.76]} />
         <meshStandardMaterial color={BODY_YELLOW} />
       </mesh>
-      {/* Rock-shed canopy sloping forward over the cab */}
-      <mesh castShadow position={[1.3, 1.6, 0]} rotation={[0, 0, -0.08]}>
-        <boxGeometry args={[1.4, 0.1, 1.76]} />
+      {/* Rock-shed canopy: wide flat slab sloping down over the cab */}
+      <mesh castShadow position={[1.32, 1.62, 0]} rotation={[0, 0, -0.1]}>
+        <boxGeometry args={[1.52, 0.12, 1.92]} />
         <meshStandardMaterial color={BODY_YELLOW} />
       </mesh>
       {/* Rear dump lip (duck-tail) */}
@@ -299,6 +321,15 @@ export default function Truck() {
           <meshStandardMaterial color={BODY_YELLOW_DARK} />
         </mesh>
       ))}
+      {/* Bed underside: diagonal support slabs (the V-profile from the refs) */}
+      <mesh castShadow position={[0.18, 0.22, 0]} rotation={[0, 0, -0.5]}>
+        <boxGeometry args={[0.8, 0.14, 1.5]} />
+        <meshStandardMaterial color={BODY_YELLOW_DARK} />
+      </mesh>
+      <mesh castShadow position={[-1.55, 0.3, 0]} rotation={[0, 0, 0.18]}>
+        <boxGeometry args={[0.9, 0.12, 1.5]} />
+        <meshStandardMaterial color={BODY_YELLOW_DARK} />
+      </mesh>
 
       {/* Wheels (visual only): single fronts, duals at the rear */}
       {[0, 1, 2, 3].map((i) => {
@@ -313,17 +344,22 @@ export default function Truck() {
             }}
             position={[AXLE_XS[axle], -0.42, side * T.wheelZ]}
           >
-            {(isRear ? [-0.13, 0.13] : [0]).map((dz) => (
+            {(isRear ? [-0.14, 0.14] : [0]).map((dz) => (
               <mesh key={dz} castShadow rotation={[Math.PI / 2, 0, 0]} position={[0, 0, dz]}>
                 <cylinderGeometry
-                  args={[T.wheelRadius, T.wheelRadius, isRear ? 0.24 : 0.4, 16]}
+                  args={[T.wheelRadius, T.wheelRadius, isRear ? 0.26 : 0.42, 16]}
                 />
-                <meshStandardMaterial color="#2e2a26" flatShading />
+                <meshStandardMaterial color="#262220" flatShading />
               </mesh>
             ))}
-            <mesh rotation={[Math.PI / 2, 0, 0]} position={[0, 0, side * 0.21]}>
-              <cylinderGeometry args={[0.2, 0.2, 0.05, 8]} />
-              <meshStandardMaterial color={BODY_YELLOW_DARK} flatShading />
+            {/* Bright rim + dark hub center, the signature look from the refs */}
+            <mesh rotation={[Math.PI / 2, 0, 0]} position={[0, 0, side * (isRear ? 0.28 : 0.22)]}>
+              <cylinderGeometry args={[0.28, 0.28, 0.05, 12]} />
+              <meshStandardMaterial color={BODY_YELLOW} flatShading />
+            </mesh>
+            <mesh rotation={[Math.PI / 2, 0, 0]} position={[0, 0, side * (isRear ? 0.31 : 0.25)]}>
+              <cylinderGeometry args={[0.1, 0.1, 0.05, 8]} />
+              <meshStandardMaterial color="#262220" flatShading />
             </mesh>
           </group>
         )
