@@ -14,6 +14,8 @@ const HANDLED = new Set([
   'ArrowRight',
   'Space',
   'KeyR',
+  'Escape',
+  'Enter',
   'Backquote',
 ])
 
@@ -45,8 +47,26 @@ export default function KeyboardManager() {
       if (HANDLED.has(e.code)) e.preventDefault()
       if (e.repeat) return
       setKey(e.code, true)
-      if (e.code === 'KeyR') useGameStore.getState().restart()
-      if (e.code === 'Backquote') useGameStore.getState().toggleDebug()
+      const store = useGameStore.getState()
+      switch (e.code) {
+        case 'KeyR':
+          store.requestRecovery()
+          break
+        case 'Space':
+          store.activateMagnet()
+          break
+        case 'Escape':
+          if (store.phase === 'playing') store.pause()
+          else if (store.phase === 'paused') store.resume()
+          break
+        case 'Enter':
+          if (store.phase === 'title' || store.phase === 'finished' || store.phase === 'failed')
+            store.startRun()
+          break
+        case 'Backquote':
+          store.toggleDebug()
+          break
+      }
     }
     const onKeyUp = (e: KeyboardEvent) => {
       if (HANDLED.has(e.code)) e.preventDefault()

@@ -1,4 +1,5 @@
 import type { RapierRigidBody } from '@react-three/rapier'
+import type { RockState } from './cargoRules'
 
 /**
  * Mutable cross-component channels that change every frame.
@@ -23,6 +24,17 @@ export function resetInput() {
 
 /** Live handles to physics objects, set on mount and cleared on unmount. */
 export const gameRefs: { truck: RapierRigidBody | null } = { truck: null }
+
+/** Cargo runtime state, owned by Rocks.tsx; read by GameDirector. */
+export const cargo = {
+  states: [] as RockState[],
+  bodies: [] as (RapierRigidBody | null)[],
+  /** Truck-local bed offsets used at spawn — reused when recovery re-seats cargo. */
+  bedOffsets: [] as [number, number, number][],
+}
+
+/** Magnet runtime: remaining active seconds, decremented inside physics steps. */
+export const magnet = { remaining: 0 }
 
 /** Per-frame telemetry for HUD and the debug overlay. */
 export const telemetry = {

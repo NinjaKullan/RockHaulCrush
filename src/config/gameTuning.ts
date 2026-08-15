@@ -80,6 +80,32 @@ export const cameraTuning = {
   maxFovBoost: 9,
 } as const
 
+export const gameplayTuning = {
+  /** Countdown timer for a run, seconds. */
+  timeLimit: 90,
+  /** Time penalty applied on checkpoint recovery, seconds. */
+  recoveryPenaltySeconds: 5,
+  /** Rocks below this world-y are lost (out of the playable course). */
+  lostBelowY: -8,
+  /** Countdown length before control begins, seconds. */
+  countdownSeconds: 3,
+} as const
+
+export const magnetTuning = {
+  /** Charges per run. */
+  charges: 3,
+  /** Active duration per charge, seconds. */
+  duration: 2.5,
+  /** Pull radius around the bed target, meters. */
+  radius: 8,
+  /** Pull acceleration applied to recoverable rocks, m/s². */
+  pullAccel: 38,
+  /** Upward bias so pulled rocks arc into the bed instead of dragging. */
+  upwardBias: 0.4,
+  /** Rocks moving faster than this are not pulled harder (prevents slingshots). */
+  maxPullSpeed: 13,
+} as const
+
 export const scoringTuning = {
   totalRocks: 20,
   /** Delivered-rock thresholds: index 0 = 1 star, 1 = 2 stars, 2 = 3 stars. */

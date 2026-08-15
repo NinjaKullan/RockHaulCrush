@@ -37,7 +37,9 @@ WebGL canvas, captures screenshots, and fails on console errors.
 | `S` / `↓`     | Brake / reverse                 |
 | `A` / `←`     | Lean backward                   |
 | `D` / `→`     | Lean forward                    |
-| `R`           | Restart                         |
+| `Space`       | Cargo Magnet                    |
+| `R`           | Recover at latest checkpoint    |
+| `Esc`         | Pause / resume                  |
 | `` ` ``       | Toggle developer debug overlay  |
 
 ## Project status
@@ -46,8 +48,8 @@ Checkpoint-based build in progress. See `CHECKPOINT_STATUS.md` for current
 state, architecture, and known issues.
 
 - ✅ Checkpoint 0 — engine baseline
-- ✅ Checkpoint 1 — core-fun graybox (this build)
-- ⬜ Checkpoint 2 — complete vertical slice
+- ✅ Checkpoint 1 — core-fun graybox
+- ✅ Checkpoint 2 — complete vertical slice (this build)
 - ⬜ Checkpoint 3 — Quarry Run course content
 - ⬜ Checkpoint 4 — presentation (art, audio, UI)
 - ⬜ Checkpoint 5 — final QA and performance

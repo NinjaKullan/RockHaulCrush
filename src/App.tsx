@@ -5,6 +5,7 @@ import { Suspense } from 'react'
 import { physicsTuning, renderTuning, cameraTuning, truckTuning } from './config/gameTuning'
 import KeyboardManager from './game/KeyboardManager'
 import CameraRig from './game/CameraRig'
+import GameDirector from './game/GameDirector'
 import Rocks from './game/Rocks'
 import Scenery from './game/Scenery'
 import Terrain from './game/Terrain'
@@ -12,19 +13,30 @@ import Truck from './game/Truck'
 import { useGameStore } from './game/store'
 import DebugOverlay from './ui/DebugOverlay'
 import HUD from './ui/HUD'
+import { CountdownOverlay, PauseMenu, ResultsScreen, TitleScreen } from './ui/screens'
 
 export default function App() {
   const runId = useGameStore((s) => s.runId)
+  const phase = useGameStore((s) => s.phase)
+
   return (
     <>
       <KeyboardManager />
-      <HUD />
+      {phase !== 'title' && <HUD />}
+      {phase === 'title' && <TitleScreen />}
+      {phase === 'countdown' && <CountdownOverlay />}
+      {phase === 'paused' && <PauseMenu />}
+      {(phase === 'finished' || phase === 'failed') && <ResultsScreen />}
       <DebugOverlay />
       <Canvas
         shadows
         dpr={[1, renderTuning.maxPixelRatio]}
         camera={{
-          position: [truckTuning.spawn[0], truckTuning.spawn[1] + cameraTuning.height, cameraTuning.distance],
+          position: [
+            truckTuning.spawn[0],
+            truckTuning.spawn[1] + cameraTuning.height,
+            cameraTuning.distance,
+          ],
           fov: cameraTuning.baseFov,
         }}
       >
@@ -38,7 +50,9 @@ export default function App() {
             key={runId}
             gravity={physicsTuning.gravity}
             timeStep={1 / physicsTuning.timestepHz}
+            paused={phase === 'paused'}
           >
+            <GameDirector />
             <Terrain />
             <Truck />
             <Rocks />

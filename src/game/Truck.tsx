@@ -10,6 +10,7 @@ import { useEffect, useMemo, useRef } from 'react'
 import * as THREE from 'three'
 import { truckTuning as T } from '../config/gameTuning'
 import { gameRefs, input, telemetry } from './refs'
+import { useGameStore } from './store'
 
 /**
  * Arcade dump truck: one dynamic chassis rigid body, two raycast suspension
@@ -112,16 +113,18 @@ export default function Truck() {
       }
     }
 
-    // --- Drive / brake / reverse along chassis forward
+    // --- Drive / brake / reverse along chassis forward (only while playing)
+    const controlsLive = useGameStore.getState().phase === 'playing'
     const vAlong = lv.x * _fwd.x + lv.y * _fwd.y
     if (grounded) {
       let force = 0
-      if (input.throttle && vAlong < T.maxSpeed) force += mass * T.accel
-      if (input.brake) {
+      if (controlsLive && input.throttle && vAlong < T.maxSpeed) force += mass * T.accel
+      if (controlsLive && input.brake) {
         if (vAlong > 0.5) force -= mass * T.brakeDecel
         else if (vAlong > -T.maxReverseSpeed) force -= mass * T.reverseAccel
       }
-      if (!input.throttle && !input.brake) force -= vAlong * mass * T.rollingDrag
+      if (!(controlsLive && (input.throttle || input.brake)))
+        force -= vAlong * mass * T.rollingDrag
       if (force !== 0) {
         _imp.copy(_fwd).multiplyScalar(force * dt)
         body.applyImpulse({ x: _imp.x, y: _imp.y, z: _imp.z }, true)
@@ -129,11 +132,13 @@ export default function Truck() {
     }
 
     // --- Lean control (works grounded and airborne)
-    let torque = 0
-    if (input.leanBack) torque += T.leanTorque
-    if (input.leanForward) torque -= T.leanTorque
-    if (torque !== 0) {
-      body.applyTorqueImpulse({ x: 0, y: 0, z: torque * mass * dt }, true)
+    if (controlsLive) {
+      let torque = 0
+      if (input.leanBack) torque += T.leanTorque
+      if (input.leanForward) torque -= T.leanTorque
+      if (torque !== 0) {
+        body.applyTorqueImpulse({ x: 0, y: 0, z: torque * mass * dt }, true)
+      }
     }
 
     telemetry.speed = vAlong

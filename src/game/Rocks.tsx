@@ -1,20 +1,22 @@
 import { useFrame } from '@react-three/fiber'
-import { RigidBody, type RapierRigidBody } from '@react-three/rapier'
-import { useMemo, useRef } from 'react'
+import { RigidBody, useBeforePhysicsStep, type RapierRigidBody } from '@react-three/rapier'
+import { useEffect, useMemo, useRef } from 'react'
 import * as THREE from 'three'
-import { cargoTuning as C, truckTuning } from '../config/gameTuning'
+import { cargoTuning as C, gameplayTuning, magnetTuning, truckTuning } from '../config/gameTuning'
 import { isPointInBed } from './cargoMath'
+import { countStates, nextRockState } from './cargoRules'
 import { mulberry32, rangeFrom } from './rng'
-import { gameRefs } from './refs'
+import { cargo, gameRefs, magnet } from './refs'
 import { useGameStore } from './store'
 
 /**
  * The 20 cargo rocks: individual dynamic bodies spawned in the truck bed.
- * In-bed detection transforms each rock into truck-local space and tests the
- * bed volume (see cargoMath.ts) — no fragile single-coordinate checks.
+ * Owns the per-rock state machine (inBed/recoverable/lost/delivered) and the
+ * Cargo Magnet forces that pull recoverable rocks back toward the bed.
  */
 
 interface RockSpec {
+  bedOffset: [number, number, number]
   position: [number, number, number]
   rotation: [number, number, number]
   radius: number
@@ -35,6 +37,7 @@ function generateRocks(): RockSpec[] {
     const lz = (row === 0 ? -0.33 : 0.33) + rangeFrom(rng, -0.04, 0.04)
     const ly = 0.78 + layer * 0.52
     rocks.push({
+      bedOffset: [lx, ly, lz],
       position: [sx + lx, sy + ly, lz],
       rotation: [rng() * Math.PI, rng() * Math.PI, rng() * Math.PI],
       radius: rangeFrom(rng, C.rockMinRadius, C.rockMaxRadius),
@@ -45,36 +48,107 @@ function generateRocks(): RockSpec[] {
 }
 
 const _truckPos = new THREE.Vector3()
+const _quat = new THREE.Quaternion()
 const _invQuat = new THREE.Quaternion()
 const _local = new THREE.Vector3()
+const _target = new THREE.Vector3()
+const _pull = new THREE.Vector3()
+
+/** Bed center in truck-local space — where the magnet pulls rocks toward. */
+const BED_TARGET_LOCAL = new THREE.Vector3(-0.72, 1.5, 0)
 
 export default function Rocks() {
   const specs = useMemo(generateRocks, [])
   const bodies = useRef<(RapierRigidBody | null)[]>([])
   const frameCounter = useRef(0)
-  const lastCount = useRef<number>(C.rockCount)
+  const magnetGlow = useRef<THREE.Mesh>(null)
 
-  // Count in-bed rocks every few frames; update the store only on change.
-  useFrame(() => {
-    frameCounter.current++
-    if (frameCounter.current % 6 !== 0) return
+  // Register runtime cargo state for GameDirector; fresh every run (remount).
+  useEffect(() => {
+    cargo.states = specs.map(() => 'inBed')
+    cargo.bodies = bodies.current
+    cargo.bedOffsets = specs.map((s) => s.bedOffset)
+    return () => {
+      cargo.states = []
+      cargo.bodies = []
+      cargo.bedOffsets = []
+    }
+  }, [specs])
+
+  // --- Cargo Magnet forces (inside the fixed physics step)
+  useBeforePhysicsStep((world) => {
+    if (magnet.remaining <= 0) return
+    const dt = world.timestep
+    magnet.remaining -= dt
     const truck = gameRefs.truck
     if (!truck) return
     const t = truck.translation()
     const r = truck.rotation()
+    _quat.set(r.x, r.y, r.z, r.w)
+    _target.copy(BED_TARGET_LOCAL).applyQuaternion(_quat).add(_truckPos.set(t.x, t.y, t.z))
+
+    for (let i = 0; i < cargo.states.length; i++) {
+      if (cargo.states[i] !== 'recoverable') continue
+      const body = bodies.current[i]
+      if (!body) continue
+      const p = body.translation()
+      _pull.set(_target.x - p.x, _target.y - p.y, _target.z - p.z)
+      const dist = _pull.length()
+      if (dist > magnetTuning.radius || dist < 0.05) continue
+      const v = body.linvel()
+      const speed = Math.hypot(v.x, v.y, v.z)
+      if (speed > magnetTuning.maxPullSpeed) continue
+      const mass = body.mass()
+      _pull
+        .normalize()
+        .multiplyScalar(magnetTuning.pullAccel * mass * dt)
+      _pull.y += magnetTuning.upwardBias * magnetTuning.pullAccel * mass * dt
+      body.applyImpulse({ x: _pull.x, y: _pull.y, z: _pull.z }, true)
+      // Mild damping keeps pulled rocks controllable rather than ballistic.
+      body.applyImpulse({ x: -v.x * mass * 0.06, y: -v.y * mass * 0.06, z: -v.z * mass * 0.06 }, true)
+    }
+  })
+
+  // --- Rock state machine + magnet glow visual (render loop, every 3rd frame)
+  useFrame(() => {
+    const truck = gameRefs.truck
+    if (!truck) return
+    const t = truck.translation()
+    const r = truck.rotation()
+
+    const glow = magnetGlow.current
+    if (glow) {
+      const active = useGameStore.getState().magnetActive
+      glow.visible = active
+      if (active) {
+        _quat.set(r.x, r.y, r.z, r.w)
+        _target.copy(BED_TARGET_LOCAL).applyQuaternion(_quat).add(_truckPos.set(t.x, t.y, t.z))
+        glow.position.copy(_target)
+        glow.scale.setScalar(1 + 0.15 * Math.sin(performance.now() / 90))
+      }
+    }
+
+    frameCounter.current++
+    if (frameCounter.current % 3 !== 0) return
     _truckPos.set(t.x, t.y, t.z)
     _invQuat.set(r.x, r.y, r.z, r.w).invert()
-    let count = 0
-    for (const body of bodies.current) {
+
+    let changed = false
+    for (let i = 0; i < cargo.states.length; i++) {
+      const body = bodies.current[i]
       if (!body) continue
       const p = body.translation()
       _local.set(p.x, p.y, p.z).sub(_truckPos).applyQuaternion(_invQuat)
-      if (isPointInBed(_local.x, _local.y, _local.z)) count++
+      const next = nextRockState(cargo.states[i], {
+        inBedNow: isPointInBed(_local.x, _local.y, _local.z),
+        belowLostBoundary: p.y < gameplayTuning.lostBelowY,
+      })
+      if (next !== cargo.states[i]) {
+        cargo.states[i] = next
+        changed = true
+      }
     }
-    if (count !== lastCount.current) {
-      lastCount.current = count
-      useGameStore.getState().setCargo(count)
-    }
+    if (changed) useGameStore.getState().setCargo(countStates(cargo.states))
   })
 
   return (
@@ -101,6 +175,18 @@ export default function Rocks() {
           </mesh>
         </RigidBody>
       ))}
+      {/* Magnet glow marker over the bed while the ability is active */}
+      <mesh ref={magnetGlow} visible={false}>
+        <sphereGeometry args={[0.55, 12, 8]} />
+        <meshStandardMaterial
+          color="#5ee8d8"
+          emissive="#2fc4b2"
+          emissiveIntensity={1.4}
+          transparent
+          opacity={0.45}
+          depthWrite={false}
+        />
+      </mesh>
     </>
   )
 }
