@@ -1,6 +1,31 @@
 import { useEffect, useState } from 'react'
 import { gameplayTuning, scoringTuning } from '../config/gameTuning'
+import { initAudio, sfx } from '../game/audio'
 import { useGameStore } from '../game/store'
+
+/** Sound + reduced-motion toggles, shared by title and pause screens. */
+function SettingsRow() {
+  const soundOn = useGameStore((s) => s.soundOn)
+  const reducedMotion = useGameStore((s) => s.reducedMotion)
+  const toggleSound = useGameStore((s) => s.toggleSound)
+  const toggleReducedMotion = useGameStore((s) => s.toggleReducedMotion)
+  return (
+    <div className="settings-row">
+      <button
+        className="mid-button"
+        onClick={() => {
+          initAudio()
+          toggleSound()
+        }}
+      >
+        {soundOn ? '🔊 Sound on' : '🔇 Sound off'}
+      </button>
+      <button className="mid-button" onClick={toggleReducedMotion}>
+        {reducedMotion ? '🐢 Reduced motion' : '🎢 Full motion'}
+      </button>
+    </div>
+  )
+}
 
 /** Title screen with start action, tutorial blurb, and best result. */
 export function TitleScreen() {
@@ -11,7 +36,14 @@ export function TitleScreen() {
     <div className="screen screen-title">
       <h1 className="game-title">Rock Haul Rush</h1>
       <p className="game-tagline">Keep the wheels down and the rocks in!</p>
-      <button className="big-button" onClick={startRun} autoFocus>
+      <button
+        className="big-button"
+        onClick={() => {
+          initAudio()
+          startRun()
+        }}
+        autoFocus
+      >
         ▶ Start Hauling
       </button>
       <div className="title-tutorial">
@@ -37,6 +69,7 @@ export function TitleScreen() {
           {'☆'.repeat(3 - bestStars)} · {bestDelivered} rocks
         </div>
       )}
+      <SettingsRow />
     </div>
   )
 }
@@ -47,6 +80,7 @@ export function CountdownOverlay() {
   const [count, setCount] = useState<number>(gameplayTuning.countdownSeconds)
 
   useEffect(() => {
+    sfx.countdownBeep(count <= 0)
     if (count <= 0) {
       const go = setTimeout(beginPlaying, 450)
       return () => clearTimeout(go)
@@ -82,6 +116,7 @@ export function PauseMenu() {
         <b>W/↑</b> drive · <b>S/↓</b> brake/reverse · <b>A/←</b> steer left · <b>D/→</b> steer
         right · <b>Space</b> magnet · <b>R</b> recover · <b>Esc</b> resume
       </p>
+      <SettingsRow />
     </div>
   )
 }
@@ -92,6 +127,21 @@ export function ResultsScreen() {
   const result = useGameStore((s) => s.result)
   const bestStars = useGameStore((s) => s.bestStars)
   const startRun = useGameStore((s) => s.startRun)
+
+  // Result fanfare + staggered star chimes on mount.
+  useEffect(() => {
+    if (!result) return
+    if (phase === 'failed' || result.stars === 0) {
+      sfx.fail()
+      return
+    }
+    sfx.delivery()
+    for (let n = 1; n <= result.stars; n++) {
+      setTimeout(() => sfx.star(n), 500 + n * 350)
+    }
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [])
+
   if (!result) return null
 
   const timedOut = phase === 'failed'
@@ -112,7 +162,11 @@ export function ResultsScreen() {
       <h2 className="screen-heading">{heading}</h2>
       <div className={`stars-row${result.stars > 0 ? '' : ' stars-none'}`}>
         {[1, 2, 3].map((n) => (
-          <span key={n} className={result.stars >= n ? 'star-earned' : 'star-empty'}>
+          <span
+            key={n}
+            className={result.stars >= n ? 'star-earned star-pop' : 'star-empty'}
+            style={result.stars >= n ? { animationDelay: `${0.5 + n * 0.35}s` } : undefined}
+          >
             {result.stars >= n ? '★' : '☆'}
           </span>
         ))}

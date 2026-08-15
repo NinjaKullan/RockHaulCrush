@@ -1,98 +1,75 @@
 # Checkpoint Status
 
-## Current checkpoint: 3 (revised) — Chase-camera pivot + Quarry Run content (awaiting approval)
+## Current checkpoint: 4 — Presentation (awaiting approval)
 
 Date: 2026-08-15
 
-## Design pivot (user-directed)
-
-Playtesting showed the side-view timing game fought player instinct: everyone
-wants to dodge. The game is now a **chase-camera lane-dodging hauler**:
-
-- Camera sits behind and above the truck, looking down the road corridor —
-  cargo is fully visible in the bed from behind.
-- `A/D` steer left/right across a ~7.8 m-wide road (soft spring at the edges,
-  hard invisible walls beyond). Cosmetic roll into turns.
-- Lean controls removed; jumps auto-level with a gentle airborne stabilizer.
-- Hazards became spatial: barrels pick one of three lanes (seeded), falling
-  rocks land on fixed learnable lanes marked by their rings, barriers block
-  part of the road leaving a gap, the crane load now swings ACROSS the road.
-  Mud and ramps stay full-width speed decisions.
-- Physics was already fully 3D — cargo, magnet, checkpoints, scoring, timer
-  all carried over unchanged. Recovery re-centers the truck (z=0).
-
 ## What exists now
 
-The full hazard set on the Quarry Run course — dodge laterally, or decide
-between speed and cargo:
+The chase-camera hauler with full feedback: particles, procedural audio,
+the user-requested cliff-blasting hazard, contextual hints, settings, and
+polished result presentation.
 
-- **Mud** (×2): flat before the first ramp, and guarding the final delivery
-  approach. Throttle force ×0.35 + heavy drag inside; dark wet patch visual.
-- **Rolling barrels**: released at the top of the first climb on a fixed
-  staggered cycle (2 barrels, one every 3.5 s), rolling down into the
-  oncoming truck. Crawl the climb safely or send it and risk a wheelie.
-- **Construction barriers** (×3): light pushable A-frames — nudge through
-  slowly or scatter them at speed and rattle the cargo.
-- **Telegraphed falling rocks** (×2 spawns over the second washboard):
-  pulsing amber ring marks the landing spot for 1.4 s, then the boulder
-  drops, rests, and vanishes on a fixed 6 s cycle.
-- **Crane load (moving machine)**: concrete block swinging across the final
-  approach as a pendulum (4.5 s period, kinematic — impacts shove backward,
-  never crush). Pass on the upswing.
-- **Route markers**: chevron signs before both ramps, warning diamonds before
-  barrels / rockfall / crane. Checkpoint flags at all 6 recovery points
-  (added one after the whoops). Scenery: spoil heaps, distant conveyor,
-  foreground parallax rocks.
-- **Timer raised to 105 s** for the hazard-laden course.
+### New this checkpoint
 
-## Tuning changes from headless playtesting
+- **Cliff-blasting zone** (user request) on the long climb: chunky cliff face
+  with charge wires on the left of the road, roadside red beacon. Cycle: 2.2 s
+  flashing-beacon + klaxon telegraph → detonation (boom + smoke burst) →
+  7 rubble chunks physically thrown across the road → debris rests 3 s and
+  vanishes. Dodge right or hang back.
+- **Particle system**: pooled instanced low-poly shards (320 max, zero
+  frame-loop allocation). Wheel dust when rolling fast, brown mud splatter,
+  landing-impact bursts scaled by fall speed, teal sparkles when the magnet
+  recaptures a rock, blast smoke.
+- **Procedural audio** (WebAudio, no assets, no network): engine tone tracking
+  speed/throttle, landing impacts, brake skids, cargo-spill cue, magnet
+  arpeggio + per-rock catch chime, blast klaxon/boom, countdown beeps,
+  delivery fanfare with staggered star chimes, failure sting. The context is
+  created/resumed only from user gestures (Start click / keydown) per
+  autoplay rules; mute state persists.
+- **Settings**: sound toggle and reduced-motion toggle on title and pause
+  screens, persisted; reduced motion disables the speed-FOV boost and cuts
+  particle counts ~65%. Defaults respect `prefers-reduced-motion`.
+- **HUD/UI polish**: cargo chip flashes red on rock loss, star reveal pops in
+  with staggered animation and chimes, blast-zone hint added.
 
-- Barrels: 3→2, smaller/lighter, real gaps — 3 staggered barrels made the
-  climb literally impossible to pass unhit (unfair).
-- Cargo repacked: 20 slightly smaller rocks, 15 in a 5×3 floor layer + 5 on
-  top — the old 2-layer stack rode above the bed walls and shed on every
-  washboard. Camera-side wall raised slightly (still lower than the far
-  side for cargo visibility).
-- Rolling drag 1.1→0.65: throttle lifts no longer pitch-dump cargo.
-- Final gap exit slope softened 25°→18° (bot stranded itself in the pit).
-- Sundry visual fixes: mud color, spoil heap placement, conveyor distance.
+## Commands
+
+- `npm run dev` — dev server at http://localhost:5173/
+- `npm test` — Vitest, 48 tests
+- `npm run build` — production build (passing)
+- `node scripts/fullrun.mjs <outdir>` — headless end-to-end
 
 ## Verified this checkpoint (headless Chromium)
 
-- Full-throttle run completes end-to-end through all hazards (delivery at
-  ~272 m, "Delivery Rejected" 0-star path shown — mindless speed loses most
-  cargo, which is the intended pressure)
-- Careful (pulse-throttle) bot kept 13/20 through the barrel climb
-- Mud slows the truck to ~10 km/h; debug overlay flags `(mud)`
-- All hazard bodies reset cleanly on replay (body count stable at 30)
-- 48 unit tests pass (added level-data sanity suite); production build clean;
-  no console errors
+- Blast cycle fires on schedule: beacon flash → rubble thrown across the road
+  → debris rests and despawns; hint toast appears on approach
+- Full run completes: 17/20 delivered ★★ by the straight-line bot; recovery,
+  pause-freeze, replay reset all intact (body count stable at 40 across runs)
+- No console errors; 48 tests + production build pass
+- Audio graph code runs headless without errors; actual sound output and
+  mix balance are **not** verifiable headlessly — needs your ears
 
 ## Known issues / honest notes
 
-- **Three-star achievability is not machine-verified.** My bots are too dumb
-  to drive well; the intended 3-star path is careful driving + using magnet
-  charges as jump insurance (spills cluster within the 8 m magnet radius).
-  Your playtest is the real test — if 20/20 feels impossible, hazard or
-  magnet tuning gets adjusted before approval.
-- Spilling many rocks and then driving into your own pile can beach the
-  truck (physics being honest). `R` recovery always works; not treating as a
-  defect unless it feels bad in play.
-- Magnet still pulls through terrain (noted since CP2; CP4 polish).
-- Timeout fail path remains unit-tested rather than browser-waited.
+- Sound levels are a first pass tuned by construction, not listening. Tell me
+  what's too loud/quiet.
+- Blast rubble can rest in your path — intended (it's a quarry), and it
+  despawns after ~3 s; magnet-recoverable rocks are unaffected.
+- Timeout fail path remains unit-tested only (90 s browser wait skipped).
+- Magnet can still pull rocks through thin terrain lips (rare in the new
+  layout; accepted).
+- Headless FPS (~11) is software rendering; not representative.
 
 ## Subjective feedback wanted
 
-1. Barrel climb: fair? Is waiting for a gap readable?
-2. Falling rocks: is the amber ring telegraph clear enough at speed?
-3. Crane: is the swing rhythm readable on approach?
-4. Mud: annoying-fun or just annoying?
-5. Can you reach 3 stars with careful play + magnets? How close do you get?
-6. Is 105 s right?
+1. Audio mix: engine volume vs. impacts vs. UI chimes?
+2. Does the blast zone read instantly? Is the 2.2 s warning enough at speed?
+3. Dust/particles: too much, too little?
+4. Star reveal + fanfare: satisfying?
 
-## Next checkpoint: 4 — Presentation
+## Next checkpoint: 5 — Final QA and performance
 
-Final art direction pass (truck/rocks/terrain/machinery materials and
-lighting), HUD/menu polish, dust/mud/impact/magnet effects, procedural
-audio with autoplay compliance, tutorial/delivery/star-reveal presentation,
-responsive UI, sound + reduced-motion toggles.
+Full start-to-finish browser test, physics edge cases, repeated
+restart/replay leak checks, performance review, resource cleanup,
+accessibility/keyboard focus, final documentation and handoff.

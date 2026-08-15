@@ -8,6 +8,8 @@ import { countStates, nextRockState } from './cargoRules'
 import { mulberry32, rangeFrom } from './rng'
 import { cargo, gameRefs, magnet } from './refs'
 import { useGameStore } from './store'
+import { sfx } from './audio'
+import { emitParticles } from './Particles'
 
 /**
  * The 20 cargo rocks: individual dynamic bodies spawned in the truck bed.
@@ -136,21 +138,46 @@ export default function Rocks() {
     _invQuat.set(r.x, r.y, r.z, r.w).invert()
 
     let changed = false
+    let spilled = 0
+    let caught = 0
     for (let i = 0; i < cargo.states.length; i++) {
       const body = bodies.current[i]
       if (!body) continue
       const p = body.translation()
       _local.set(p.x, p.y, p.z).sub(_truckPos).applyQuaternion(_invQuat)
-      const next = nextRockState(cargo.states[i], {
+      const prev = cargo.states[i]
+      const next = nextRockState(prev, {
         inBedNow: isPointInBed(_local.x, _local.y, _local.z),
         belowLostBoundary: p.y < gameplayTuning.lostBelowY,
       })
-      if (next !== cargo.states[i]) {
+      if (next !== prev) {
         cargo.states[i] = next
         changed = true
+        if (prev === 'inBed' && next === 'recoverable') spilled++
+        if (prev === 'recoverable' && next === 'inBed') {
+          caught++
+          emitParticles({
+            x: p.x,
+            y: p.y,
+            z: p.z,
+            count: 5,
+            color: 0x5ee8d8,
+            speed: 1.5,
+            spread: 0.8,
+            up: 2,
+            life: 0.5,
+            size: 0.1,
+            gravity: 2,
+          })
+        }
       }
     }
-    if (changed) useGameStore.getState().setCargo(countStates(cargo.states))
+    if (changed) {
+      const phase = useGameStore.getState().phase
+      if (spilled > 0 && phase === 'playing') sfx.spill()
+      if (caught > 0 && phase === 'playing') sfx.rockCaught()
+      useGameStore.getState().setCargo(countStates(cargo.states))
+    }
   })
 
   return (

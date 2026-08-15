@@ -208,6 +208,25 @@ export const craneHazard = {
   groundY: 0,
 } as const
 
+/**
+ * Cliff-blasting zone on the long climb: charges detonate on a telegraphed
+ * cycle and throw rubble across the road from the cliff face on the left.
+ */
+export const blastZone = {
+  /** Center of the blast face along x. */
+  x: 153,
+  /** Cliff face sits at this z (left of the road); rubble flies toward +z. */
+  faceZ: -5.2,
+  /** Ground height at the zone (climb profile). */
+  groundY: 1.7,
+  /** Full cycle seconds: idle → warn → blast → settle. */
+  period: 9,
+  warnTime: 2.2,
+  /** How long rubble stays before vanishing. */
+  restTime: 3,
+  rubbleCount: 7,
+} as const
+
 /** Pushable A-frame barriers, placed to leave a drivable gap to steer through. */
 export const barrierPositions: { x: number; y: number; z: number }[] = [
   // Before the first ramp: blocks left + center, gap on the right
@@ -226,6 +245,7 @@ export const signs: { x: number; groundY: number; kind: 'chevron' | 'warn' }[] =
   { x: 78.5, groundY: 0.6, kind: 'chevron' }, // first ramp
   { x: 28.5, groundY: 0, kind: 'warn' }, // barrels on the climb ahead
   { x: 121, groundY: 0, kind: 'warn' }, // rockfall zone
+  { x: 146, groundY: 0.6, kind: 'warn' }, // blasting zone on the climb
   { x: 210.5, groundY: 0.8, kind: 'chevron' }, // big ramp
   { x: 237.5, groundY: 0, kind: 'warn' }, // crane + mud
 ]

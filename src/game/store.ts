@@ -7,6 +7,20 @@ import {
 } from '../config/gameTuning'
 import type { CargoCounts } from './cargoRules'
 import { magnet } from './refs'
+import { isSoundEnabled, setSoundEnabled } from './audio'
+import { particleSettings } from './Particles'
+
+const REDUCED_MOTION_KEY = 'rhr-reduced-motion'
+
+function loadReducedMotion(): boolean {
+  try {
+    const stored = globalThis.localStorage?.getItem(REDUCED_MOTION_KEY)
+    if (stored !== null && stored !== undefined) return stored === '1'
+    return globalThis.matchMedia?.('(prefers-reduced-motion: reduce)').matches ?? false
+  } catch {
+    return false
+  }
+}
 
 /**
  * Game state machine:
@@ -38,6 +52,10 @@ interface GameStore {
   bestStars: number
   bestDelivered: number
   debugVisible: boolean
+  soundOn: boolean
+  reducedMotion: boolean
+  toggleSound: () => void
+  toggleReducedMotion: () => void
 
   startRun: () => void
   beginPlaying: () => void
@@ -98,6 +116,25 @@ export const useGameStore = create<GameStore>((set, get) => ({
   bestStars: loadBest(BEST_STARS_KEY),
   bestDelivered: loadBest(BEST_DELIVERED_KEY),
   debugVisible: false,
+  soundOn: isSoundEnabled(),
+  reducedMotion: loadReducedMotion(),
+
+  toggleSound: () => {
+    const next = !get().soundOn
+    setSoundEnabled(next)
+    set({ soundOn: next })
+  },
+
+  toggleReducedMotion: () => {
+    const next = !get().reducedMotion
+    particleSettings.intensity = next ? 0.35 : 1
+    try {
+      globalThis.localStorage?.setItem(REDUCED_MOTION_KEY, next ? '1' : '0')
+    } catch {
+      /* non-persistent */
+    }
+    set({ reducedMotion: next })
+  },
 
   startRun: () =>
     set((s) => ({ ...freshRun(), phase: 'countdown', runId: s.runId + 1 })),
@@ -172,3 +209,6 @@ export const useGameStore = create<GameStore>((set, get) => ({
 
   toggleDebug: () => set((s) => ({ debugVisible: !s.debugVisible })),
 }))
+
+// Apply persisted reduced-motion preference to the particle system at load.
+particleSettings.intensity = useGameStore.getState().reducedMotion ? 0.35 : 1

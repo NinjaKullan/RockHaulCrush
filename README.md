@@ -50,8 +50,8 @@ state, architecture, and known issues.
 - ✅ Checkpoint 0 — engine baseline
 - ✅ Checkpoint 1 — core-fun graybox
 - ✅ Checkpoint 2 — complete vertical slice
-- ✅ Checkpoint 3 — Quarry Run course content (this build)
-- ⬜ Checkpoint 4 — presentation (art, audio, UI)
+- ✅ Checkpoint 3 — Quarry Run course content (chase-camera pivot)
+- ✅ Checkpoint 4 — presentation: blast hazard, particles, audio, settings (this build)
 - ⬜ Checkpoint 5 — final QA and performance
 
 ## Tuning

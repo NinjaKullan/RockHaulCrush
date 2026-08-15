@@ -47,8 +47,11 @@ export default function CameraRig() {
     cam.position.z += (t.z * CAM.zFollow - cam.position.z) * kx
     cam.lookAt(t.x + CAM.lookAhead, t.y + CAM.lookUp, t.z * CAM.zLook)
 
+    const reduced = useGameStore.getState().reducedMotion
     const speed = Math.abs(v.x)
-    const targetFov = CAM.baseFov + Math.min(CAM.maxFovBoost, speed * CAM.fovPerSpeed)
+    const targetFov = reduced
+      ? CAM.baseFov
+      : CAM.baseFov + Math.min(CAM.maxFovBoost, speed * CAM.fovPerSpeed)
     cam.fov += (targetFov - cam.fov) * kx
     cam.updateProjectionMatrix()
 

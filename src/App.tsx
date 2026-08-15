@@ -12,8 +12,10 @@ import Terrain from './game/Terrain'
 import Truck from './game/Truck'
 import Barrels from './game/hazards/Barrels'
 import Barriers from './game/hazards/Barriers'
+import BlastZone from './game/hazards/BlastZone'
 import Crane from './game/hazards/Crane'
 import FallingRocks from './game/hazards/FallingRocks'
+import Particles from './game/Particles'
 import { useGameStore } from './game/store'
 import DebugOverlay from './ui/DebugOverlay'
 import HintSystem from './ui/HintSystem'
@@ -66,7 +68,9 @@ export default function App() {
             <Barriers />
             <FallingRocks />
             <Crane />
+            <BlastZone />
           </Physics>
+          <Particles />
         </Suspense>
       </Canvas>
     </>

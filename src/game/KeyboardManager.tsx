@@ -1,4 +1,5 @@
 import { useEffect } from 'react'
+import { initAudio, sfx } from './audio'
 import { input, resetInput } from './refs'
 import { useGameStore } from './store'
 
@@ -46,15 +47,19 @@ export default function KeyboardManager() {
     const onKeyDown = (e: KeyboardEvent) => {
       if (HANDLED.has(e.code)) e.preventDefault()
       if (e.repeat) return
+      if (HANDLED.has(e.code)) initAudio()
       setKey(e.code, true)
       const store = useGameStore.getState()
       switch (e.code) {
         case 'KeyR':
           store.requestRecovery()
           break
-        case 'Space':
+        case 'Space': {
+          const chargesBefore = store.magnetCharges
           store.activateMagnet()
+          if (useGameStore.getState().magnetCharges < chargesBefore) sfx.magnet()
           break
+        }
         case 'Escape':
           if (store.phase === 'playing') store.pause()
           else if (store.phase === 'paused') store.resume()

@@ -61,6 +61,12 @@ const HINTS: Hint[] = [
     test: (c) => c.x > 114 && c.x < 121,
   },
   {
+    id: 'blast',
+    priority: 1,
+    text: '💥 Blasting zone! When the red beacon flashes, rubble flies — keep right or hang back.',
+    test: (c) => c.x > 140 && c.x < 148,
+  },
+  {
     id: 'crane',
     priority: 1,
     text: '⚠ Swinging crane load — time your pass or hug the road edge.',

@@ -1,4 +1,4 @@
-import { useEffect, useState } from 'react'
+import { useEffect, useRef, useState } from 'react'
 import { magnetTuning, scoringTuning } from '../config/gameTuning'
 import { telemetry } from '../game/refs'
 import { useGameStore } from '../game/store'
@@ -11,6 +11,8 @@ export default function HUD() {
   const magnetActive = useGameStore((s) => s.magnetActive)
   const pause = useGameStore((s) => s.pause)
   const [speed, setSpeed] = useState(0)
+  const [flash, setFlash] = useState(false)
+  const prevInBed = useRef(cargo.inBed)
 
   useEffect(() => {
     const id = setInterval(() => {
@@ -18,6 +20,17 @@ export default function HUD() {
     }, 100)
     return () => clearInterval(id)
   }, [])
+
+  // Flash the cargo chip red when rocks are lost from the bed.
+  useEffect(() => {
+    if (cargo.inBed < prevInBed.current) {
+      setFlash(true)
+      const id = setTimeout(() => setFlash(false), 600)
+      prevInBed.current = cargo.inBed
+      return () => clearTimeout(id)
+    }
+    prevInBed.current = cargo.inBed
+  }, [cargo.inBed])
 
   const low = cargo.inBed < scoringTuning.starThresholds[0]
   const minutes = Math.floor(timeLeft / 60)
@@ -39,7 +52,7 @@ export default function HUD() {
       <div className="hud-brand">
         <span className="hud-title">Rock Haul Rush</span>
       </div>
-      <div className={`hud-cargo${low ? ' hud-cargo-low' : ''}`}>
+      <div className={`hud-cargo${low ? ' hud-cargo-low' : ''}${flash ? ' hud-cargo-flash' : ''}`}>
         ROCKS {cargo.inBed}/{scoringTuning.totalRocks}
         <span className="hud-stars">
           {'★'.repeat(potentialStars)}

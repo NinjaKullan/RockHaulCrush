@@ -12,6 +12,8 @@ import { mudTuning, truckTuning as T } from '../config/gameTuning'
 import { mudRegions } from './levels/quarryRun'
 import { gameRefs, input, telemetry } from './refs'
 import { useGameStore } from './store'
+import { setEngine, sfx, stopEngine } from './audio'
+import { emitParticles } from './Particles'
 
 /**
  * Arcade dump truck: one dynamic chassis rigid body, two raycast suspension
@@ -47,6 +49,8 @@ export default function Truck() {
   const wheelSpin = useRef(0)
   const wheelGroups = useRef<(THREE.Group | null)[]>([])
   const visualRoll = useRef<THREE.Group>(null)
+  const skidCooldown = useRef(0)
+  const dustAcc = useRef(0)
 
   useEffect(() => {
     gameRefs.truck = bodyRef.current
@@ -162,6 +166,30 @@ export default function Truck() {
       body.applyTorqueImpulse({ x: 0, y: 0, z: torque * mass * dt }, true)
     }
 
+    // Landing impact: grounded transition with real downward speed
+    if (grounded && !telemetry.grounded && lv.y < -4) {
+      const intensity = Math.min(1, (-lv.y - 4) / 8)
+      if (controlsLive) sfx.impact(intensity)
+      emitParticles({
+        x: t.x,
+        y: t.y - 0.8,
+        z: t.z,
+        count: 8 + Math.round(intensity * 10),
+        color: inMud ? 0x6d5138 : 0xd8a86a,
+        speed: 3,
+        spread: 1.2,
+        up: 2.5,
+        life: 0.8,
+        size: 0.16,
+      })
+    }
+    // Brake skid at speed
+    if (controlsLive && input.brake && vAlong > 8 && grounded && skidCooldown.current <= 0) {
+      sfx.skid()
+      skidCooldown.current = 0.35
+    }
+    skidCooldown.current -= dt
+
     telemetry.speed = vAlong
     telemetry.grounded = grounded
     telemetry.inMud = inMud
@@ -179,6 +207,34 @@ export default function Truck() {
     if (body && roll) {
       const vz = body.linvel().z
       roll.rotation.x += (THREE.MathUtils.clamp(vz * 0.045, -0.13, 0.13) - roll.rotation.x) * 0.15
+    }
+
+    // Engine tone + rolling dust
+    const playing = useGameStore.getState().phase === 'playing'
+    if (playing) {
+      setEngine(Math.min(1, Math.abs(telemetry.speed) / T.maxSpeed), input.throttle)
+    } else {
+      stopEngine()
+    }
+    if (body && playing && telemetry.grounded && Math.abs(telemetry.speed) > 5) {
+      dustAcc.current += delta
+      const interval = telemetry.inMud ? 0.05 : 0.09
+      if (dustAcc.current > interval) {
+        dustAcc.current = 0
+        const p = body.translation()
+        emitParticles({
+          x: p.x - 1.6,
+          y: p.y - 0.8,
+          z: p.z,
+          count: telemetry.inMud ? 4 : 2,
+          color: telemetry.inMud ? 0x5d4530 : 0xdcb27a,
+          speed: 1.2,
+          spread: 0.8,
+          up: telemetry.inMud ? 3 : 1.6,
+          life: 0.6,
+          size: telemetry.inMud ? 0.18 : 0.13,
+        })
+      }
     }
     wheelSpin.current -= (telemetry.speed / T.wheelRadius) * delta
     for (let i = 0; i < 4; i++) {
