@@ -37,6 +37,41 @@ export default function Scenery() {
           <meshStandardMaterial color={h.color} flatShading />
         </mesh>
       ))}
+      {/* Mid-ground quarry props: spoil heaps and a conveyor tower */}
+      {[
+        { x: 20, z: -42, r: 4.5, h: 5.5 },
+        { x: 95, z: -46, r: 6, h: 7 },
+        { x: 175, z: -42, r: 5, h: 6 },
+        { x: 250, z: -45, r: 5.5, h: 6.5 },
+      ].map((s, i) => (
+        <mesh key={`s${i}`} position={[s.x, -0.5, s.z]}>
+          <coneGeometry args={[s.r, s.h, 7]} />
+          <meshStandardMaterial color="#b8834a" flatShading />
+        </mesh>
+      ))}
+      <group position={[150, -1, -58]}>
+        <mesh position={[0, 4, 0]}>
+          <boxGeometry args={[2.6, 8, 2.6]} />
+          <meshStandardMaterial color="#8a7458" flatShading />
+        </mesh>
+        <mesh position={[8, 4.6, 0]} rotation={[0, 0, -0.3]}>
+          <boxGeometry args={[18, 1.0, 2]} />
+          <meshStandardMaterial color="#9a8265" flatShading />
+        </mesh>
+      </group>
+      {/* Foreground parallax rocks (between camera and action, low in frame) */}
+      {[
+        { x: -2, z: 8, s: 1.6 },
+        { x: 58, z: 8.5, s: 2.1 },
+        { x: 118, z: 8, s: 1.4 },
+        { x: 182, z: 8.5, s: 2.3 },
+        { x: 246, z: 8, s: 1.7 },
+      ].map((f, i) => (
+        <mesh key={`f${i}`} position={[f.x, -0.9, f.z]} scale={f.s} rotation={[0.4, i, 0.2]}>
+          <dodecahedronGeometry args={[1, 0]} />
+          <meshStandardMaterial color="#8a5f36" flatShading />
+        </mesh>
+      ))}
       {clouds.map((c, i) => (
         <group key={`c${i}`} position={c.pos} scale={c.scale}>
           <mesh>

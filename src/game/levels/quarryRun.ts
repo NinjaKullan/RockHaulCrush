@@ -73,9 +73,9 @@ export const groundBoxes: GroundBox[] = [
   slab(172, 185, 3.4, 0.8, SAND_ALT), // steep descent (brake test)
   slab(185, 212, 0.8, 0.8, SAND), // whoops section base
   slab(212, 219, 0.8, 2.7, RAMP), // big launch ramp
-  slab(217, 228, -1.6, -1.6, PIT), // wide gap floor
-  slab(228, 231.4, -1.6, 0, PIT), // drive-out slope
-  slab(231, 274, 0, 0, SAND), // final flat — checkpoint + delivery
+  slab(217, 228.6, -1.6, -1.6, PIT), // wide gap floor
+  slab(228, 233.4, -1.6, 0.1, PIT), // drive-out slope (gentle enough from a stop)
+  slab(232.8, 274, 0, 0, SAND), // final flat — checkpoint + delivery
 ]
 
 /** Washboard bumps and whoops. */
@@ -130,15 +130,55 @@ export const levelBounds = { minX: -18, maxX: 274 } as const
  */
 export const checkpoints: { x: number; y: number }[] = [
   { x: -6, y: 1.5 }, // start
-  { x: 47, y: 4.2 }, // plateau
+  { x: 47, y: 4.2 }, // plateau, after the barrel climb
   { x: 105, y: 1.6 }, // after first jump
   { x: 167, y: 5.0 }, // high plateau
-  { x: 236, y: 1.6 }, // after big jump
+  { x: 209.5, y: 2.4 }, // after the whoops, before the big ramp
+  { x: 234, y: 1.6 }, // after big jump, before crane + mud
 ]
 
 /** Delivery zone: crossing `finishX` snapshots the in-bed cargo and scores. */
 export const deliveryZone = {
-  padStartX: 250,
-  finishX: 256,
-  padEndX: 264,
+  padStartX: 258,
+  finishX: 262,
+  padEndX: 270,
 } as const
+
+/** Mud patches: reduced drive force and extra drag inside these x-ranges. */
+export const mudRegions: { x0: number; x1: number; groundY: number }[] = [
+  { x0: 70, x1: 76, groundY: 0.6 }, // flat before the first ramp
+  { x0: 246, x1: 254, groundY: 0 }, // final grind guarding the delivery pad
+]
+
+/** Rolling-barrel hazard on the first climb (they roll down toward the truck). */
+export const barrelHazard = {
+  spawn: { x: 43.2, y: 3.8 },
+} as const
+
+/** Telegraphed falling rocks over the second washboard. */
+export const fallingRockSpawns: { x: number; groundY: number; phase: number }[] = [
+  { x: 127, groundY: 0.4, phase: 0 },
+  { x: 135, groundY: 0.4, phase: 3 },
+]
+
+/** Swinging crane load guarding the final approach. */
+export const craneHazard = {
+  x: 242,
+  groundY: 0,
+} as const
+
+/** Pushable A-frame construction barriers. */
+export const barrierPositions: { x: number; y: number }[] = [
+  { x: 77.5, y: 1.1 }, // before the first ramp
+  { x: 130.5, y: 0.7 }, // mid rockfall zone
+  { x: 138.5, y: 0.7 },
+]
+
+/** Route signage: chevrons say "send it", warnings say "think first". */
+export const signs: { x: number; groundY: number; kind: 'chevron' | 'warn' }[] = [
+  { x: 78.5, groundY: 0.6, kind: 'chevron' }, // first ramp
+  { x: 28.5, groundY: 0, kind: 'warn' }, // barrels roll down the climb ahead
+  { x: 121, groundY: 0, kind: 'warn' }, // rockfall zone
+  { x: 210.5, groundY: 0.8, kind: 'chevron' }, // big ramp
+  { x: 237.5, groundY: 0, kind: 'warn' }, // crane + mud
+]

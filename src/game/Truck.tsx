@@ -8,7 +8,8 @@ import {
 } from '@react-three/rapier'
 import { useEffect, useMemo, useRef } from 'react'
 import * as THREE from 'three'
-import { truckTuning as T } from '../config/gameTuning'
+import { mudTuning, truckTuning as T } from '../config/gameTuning'
+import { mudRegions } from './levels/quarryRun'
 import { gameRefs, input, telemetry } from './refs'
 import { useGameStore } from './store'
 
@@ -116,15 +117,24 @@ export default function Truck() {
     // --- Drive / brake / reverse along chassis forward (only while playing)
     const controlsLive = useGameStore.getState().phase === 'playing'
     const vAlong = lv.x * _fwd.x + lv.y * _fwd.y
+    let inMud = false
+    for (const m of mudRegions) {
+      if (t.x >= m.x0 && t.x <= m.x1) {
+        inMud = true
+        break
+      }
+    }
     if (grounded) {
       let force = 0
-      if (controlsLive && input.throttle && vAlong < T.maxSpeed) force += mass * T.accel
+      const accel = inMud ? T.accel * mudTuning.accelFactor : T.accel
+      if (controlsLive && input.throttle && vAlong < T.maxSpeed) force += mass * accel
       if (controlsLive && input.brake) {
         if (vAlong > 0.5) force -= mass * T.brakeDecel
         else if (vAlong > -T.maxReverseSpeed) force -= mass * T.reverseAccel
       }
       if (!(controlsLive && (input.throttle || input.brake)))
         force -= vAlong * mass * T.rollingDrag
+      if (inMud) force -= vAlong * mass * mudTuning.extraDrag
       if (force !== 0) {
         _imp.copy(_fwd).multiplyScalar(force * dt)
         body.applyImpulse({ x: _imp.x, y: _imp.y, z: _imp.z }, true)
@@ -143,6 +153,7 @@ export default function Truck() {
 
     telemetry.speed = vAlong
     telemetry.grounded = grounded
+    telemetry.inMud = inMud
     telemetry.truckX = t.x
     telemetry.truckY = t.y
     telemetry.bodyCount = world.bodies.len()
@@ -191,7 +202,7 @@ export default function Truck() {
       <CuboidCollider args={[0.08, 0.52, 0.88]} position={[0.48, 1.02, 0]} friction={0.6} />
       <CuboidCollider args={[0.08, 0.36, 0.88]} position={[-1.92, 0.87, 0]} friction={0.6} />
       {/* Camera-side (+z) wall is lower so the cargo stays clearly visible */}
-      <CuboidCollider args={[1.28, 0.24, 0.08]} position={[-0.72, 0.75, 0.8]} friction={0.6} />
+      <CuboidCollider args={[1.28, 0.3, 0.08]} position={[-0.72, 0.81, 0.8]} friction={0.6} />
       <CuboidCollider args={[1.28, 0.38, 0.08]} position={[-0.72, 0.89, -0.8]} friction={0.6} />
 
       {/* --- Visuals: stylized quarry rigid hauler --- */}
@@ -311,12 +322,12 @@ export default function Truck() {
         <meshStandardMaterial color={BODY_YELLOW} />
       </mesh>
       {/* Near (+z, camera) side: same profile but lower so cargo stays visible */}
-      <mesh castShadow position={[-0.1, 0.78, 0.83]}>
-        <boxGeometry args={[1.16, 0.44, 0.14]} />
+      <mesh castShadow position={[-0.1, 0.85, 0.83]}>
+        <boxGeometry args={[1.16, 0.54, 0.14]} />
         <meshStandardMaterial color={BODY_YELLOW} />
       </mesh>
-      <mesh castShadow position={[-1.3, 0.7, 0.83]} rotation={[0, 0, 0.07]}>
-        <boxGeometry args={[1.44, 0.36, 0.14]} />
+      <mesh castShadow position={[-1.3, 0.76, 0.83]} rotation={[0, 0, 0.07]}>
+        <boxGeometry args={[1.44, 0.44, 0.14]} />
         <meshStandardMaterial color={BODY_YELLOW} />
       </mesh>
       {/* Body ribs on the near side */}

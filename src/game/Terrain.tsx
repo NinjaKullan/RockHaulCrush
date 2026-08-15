@@ -5,6 +5,8 @@ import {
   checkpoints,
   deliveryZone,
   groundBoxes,
+  mudRegions,
+  signs,
   zWalls,
   type GroundBox,
 } from './levels/quarryRun'
@@ -18,6 +20,57 @@ function GroundPiece({ box }: { box: GroundBox }) {
           <boxGeometry args={[box.half[0] * 2, box.half[1] * 2, box.zHalf * 2]} />
           <meshStandardMaterial color={box.color} />
         </mesh>
+      )}
+    </group>
+  )
+}
+
+/** Wet mud patch (visual; the slowdown is applied in truck physics). */
+function MudPatch({ x0, x1, groundY }: { x0: number; x1: number; groundY: number }) {
+  return (
+    <mesh position={[(x0 + x1) / 2, groundY + 0.04, 0]} receiveShadow>
+      <boxGeometry args={[x1 - x0, 0.08, 7]} />
+      <meshStandardMaterial color="#6d5138" roughness={0.55} metalness={0.2} />
+    </mesh>
+  )
+}
+
+/** Route sign: chevron (full speed ahead) or warning diamond (hazard ahead). */
+function SignPost({ x, groundY, kind }: { x: number; groundY: number; kind: 'chevron' | 'warn' }) {
+  return (
+    <group position={[x, groundY, -4.2]}>
+      <mesh castShadow position={[0, 0.85, 0]}>
+        <cylinderGeometry args={[0.07, 0.09, 1.7, 6]} />
+        <meshStandardMaterial color="#5a4632" />
+      </mesh>
+      {kind === 'chevron' ? (
+        <group position={[0, 1.85, 0]}>
+          <mesh castShadow>
+            <boxGeometry args={[1.1, 0.62, 0.08]} />
+            <meshStandardMaterial color="#33302b" />
+          </mesh>
+          {[-0.28, 0.05, 0.38].map((dx) => (
+            <mesh key={dx} position={[dx, 0, 0.05]} rotation={[0, 0, -Math.PI / 2]}>
+              <coneGeometry args={[0.2, 0.34, 3]} />
+              <meshStandardMaterial color="#ffd25e" />
+            </mesh>
+          ))}
+        </group>
+      ) : (
+        <group position={[0, 1.9, 0]}>
+          <mesh castShadow rotation={[0, 0, Math.PI / 4]}>
+            <boxGeometry args={[0.72, 0.72, 0.08]} />
+            <meshStandardMaterial color="#ffb52e" />
+          </mesh>
+          <mesh position={[0, 0.02, 0.05]}>
+            <boxGeometry args={[0.12, 0.34, 0.03]} />
+            <meshStandardMaterial color="#33302b" />
+          </mesh>
+          <mesh position={[0, -0.24, 0.05]}>
+            <boxGeometry args={[0.12, 0.12, 0.03]} />
+            <meshStandardMaterial color="#33302b" />
+          </mesh>
+        </group>
       )}
     </group>
   )
@@ -96,6 +149,12 @@ export default function Terrain() {
       {/* Non-physics course dressing */}
       {checkpoints.slice(1).map((cp) => (
         <CheckpointFlag key={cp.x} x={cp.x} y={cp.y} />
+      ))}
+      {mudRegions.map((m, i) => (
+        <MudPatch key={i} {...m} />
+      ))}
+      {signs.map((s, i) => (
+        <SignPost key={i} {...s} />
       ))}
       <DeliveryZone />
     </>

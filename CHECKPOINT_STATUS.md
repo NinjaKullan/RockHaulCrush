@@ -1,56 +1,81 @@
 # Checkpoint Status
 
-## Current checkpoint: 2 — Complete vertical slice (awaiting approval)
+## Current checkpoint: 3 — Quarry Run content (awaiting approval)
 
 Date: 2026-08-15
 
 ## What exists now
 
-A complete playable game loop on an extended graybox course:
+The full hazard set on the Quarry Run course. Every hazard is a timing/speed
+decision (the game is plane-locked by design — no lateral dodging):
 
-- **State machine**: `title → countdown(3-2-1-GO) → playing ⇄ paused → finished | failed → replay`. Physics and timer freeze while paused; controls are dead outside `playing`.
-- **Timer**: 90 s countdown; expiry fails the run. Recovery costs 5 s.
-- **Extended course (~290 m)**: Act 1 (washboard → climb → plateau → descent → ramp jump → dip) + Act 2 (meaner washboard → long steep climb → high plateau → steep descent → whoops → big ramp jump → final flat → delivery zone).
-- **Checkpoints**: 5 recovery points with flag markers. `R` teleports the truck + in-bed cargo to the latest one, zeroes velocities, and leaves spilled/lost rocks where they are.
-- **Cargo states**: every rock is `inBed | recoverable | lost | delivered` (pure rules in `cargoRules.ts`). Lost and delivered are terminal; recovery never resurrects lost rocks; delivery snapshots can never double-count.
-- **Cargo Magnet** (`Space`): 3 charges, 2.5 s each, pulls recoverable rocks within 8 m toward the bed with capped, damped forces + upward arc. Teal glow marker over the bed while active; HUD indicator with charges.
-- **Delivery**: green-striped pad + goal arch at the course end; crossing the finish line snapshots in-bed cargo, scores stars (12/16/20), stores local bests.
-- **Screens**: title (tutorial + best), countdown, pause menu, results (delivered / stars / time left / best / Play Again for finished, timeout, and completed-but-failed <12 cases).
-- **HUD**: cargo count with live star potential, timer (pulses <15 s), magnet indicator, speed, hints, pause button.
+- **Mud** (×2): flat before the first ramp, and guarding the final delivery
+  approach. Throttle force ×0.35 + heavy drag inside; dark wet patch visual.
+- **Rolling barrels**: released at the top of the first climb on a fixed
+  staggered cycle (2 barrels, one every 3.5 s), rolling down into the
+  oncoming truck. Crawl the climb safely or send it and risk a wheelie.
+- **Construction barriers** (×3): light pushable A-frames — nudge through
+  slowly or scatter them at speed and rattle the cargo.
+- **Telegraphed falling rocks** (×2 spawns over the second washboard):
+  pulsing amber ring marks the landing spot for 1.4 s, then the boulder
+  drops, rests, and vanishes on a fixed 6 s cycle.
+- **Crane load (moving machine)**: concrete block swinging across the final
+  approach as a pendulum (4.5 s period, kinematic — impacts shove backward,
+  never crush). Pass on the upswing.
+- **Route markers**: chevron signs before both ramps, warning diamonds before
+  barrels / rockfall / crane. Checkpoint flags at all 6 recovery points
+  (added one after the whoops). Scenery: spoil heaps, distant conveyor,
+  foreground parallax rocks.
+- **Timer raised to 105 s** for the hazard-laden course.
 
-## Commands
+## Tuning changes from headless playtesting
 
-- `npm run dev` — dev server at http://localhost:5173/
-- `npm test` — Vitest, 42 tests (scoring, bed volume, RNG, cargo state machine, store lifecycle)
-- `npm run build` — production build (passing)
-- `node scripts/fullrun.mjs <outdir>` — headless end-to-end (title → drive → magnet → recovery → pause → delivery → replay)
+- Barrels: 3→2, smaller/lighter, real gaps — 3 staggered barrels made the
+  climb literally impossible to pass unhit (unfair).
+- Cargo repacked: 20 slightly smaller rocks, 15 in a 5×3 floor layer + 5 on
+  top — the old 2-layer stack rode above the bed walls and shed on every
+  washboard. Camera-side wall raised slightly (still lower than the far
+  side for cargo visibility).
+- Rolling drag 1.1→0.65: throttle lifts no longer pitch-dump cargo.
+- Final gap exit slope softened 25°→18° (bot stranded itself in the pit).
+- Sundry visual fixes: mud color, spoil heap placement, conveyor distance.
 
 ## Verified this checkpoint (headless Chromium)
 
-- Full run delivered 15/20 → ★☆☆; state accounting at snapshot: bed 0 / recoverable 5 / lost 0 / delivered 15
-- Magnet activation consumes exactly one charge; indicator updates
-- Recovery teleported 185.9 → checkpoint at 167 with 5 s penalty applied
-- Pause freezes the timer (verified frozen across 1.5 s)
-- Replay resets: 20/20 cargo, checkpoint 0, body count 22, run id increments
-- No console errors; build + 42 tests pass
+- Full-throttle run completes end-to-end through all hazards (delivery at
+  ~272 m, "Delivery Rejected" 0-star path shown — mindless speed loses most
+  cargo, which is the intended pressure)
+- Careful (pulse-throttle) bot kept 13/20 through the barrel climb
+- Mud slows the truck to ~10 km/h; debug overlay flags `(mud)`
+- All hazard bodies reset cleanly on replay (body count stable at 30)
+- 48 unit tests pass (added level-data sanity suite); production build clean;
+  no console errors
 
 ## Known issues / honest notes
 
-- **Timeout fail path** is covered by store unit tests, not a headless browser run (would need a 90 s idle wait). The transition logic is the same `tickTimer` code either way.
-- Magnet does not yet respect line-of-sight (can pull through terrain); the brief allows this "when practical" — planned for CP3/4 polish.
-- Course pacing: flat-out with mistakes ≈ 40-50 s; careful hauling uses most of the 90 s. Real tuning happens at Checkpoint 3 with hazards in place.
-- Whoops bumps were rebuilt as slab pairs after the box version wedged the truck (found and fixed during headless testing).
-- Headless FPS (~10) is SwiftShader software rendering; not representative of real hardware.
+- **Three-star achievability is not machine-verified.** My bots are too dumb
+  to drive well; the intended 3-star path is careful driving + using magnet
+  charges as jump insurance (spills cluster within the 8 m magnet radius).
+  Your playtest is the real test — if 20/20 feels impossible, hazard or
+  magnet tuning gets adjusted before approval.
+- Spilling many rocks and then driving into your own pile can beach the
+  truck (physics being honest). `R` recovery always works; not treating as a
+  defect unless it feels bad in play.
+- Magnet still pulls through terrain (noted since CP2; CP4 polish).
+- Timeout fail path remains unit-tested rather than browser-waited.
 
 ## Subjective feedback wanted
 
-1. Is the 90 s limit tense but fair?
-2. Magnet: does 3 × 2.5 s feel scarce enough to be a decision, strong enough to matter?
-3. Recovery penalty (5 s): too cheap? too harsh?
-4. Act 2 difficulty: whoops + steep descent + big jump — fun or frustrating?
+1. Barrel climb: fair? Is waiting for a gap readable?
+2. Falling rocks: is the amber ring telegraph clear enough at speed?
+3. Crane: is the swing rhythm readable on approach?
+4. Mud: annoying-fun or just annoying?
+5. Can you reach 3 stars with careful play + magnets? How close do you get?
+6. Is 105 s right?
 
-## Next checkpoint: 3 — Quarry Run content
+## Next checkpoint: 4 — Presentation
 
-Cohesive final layout, mud patches, rolling barrels, construction barriers,
-telegraphed falling rocks, one moving-machine hazard, route markers, scenery,
-boundaries, tuned checkpoint placement.
+Final art direction pass (truck/rocks/terrain/machinery materials and
+lighting), HUD/menu polish, dust/mud/impact/magnet effects, procedural
+audio with autoplay compliance, tutorial/delivery/star-reveal presentation,
+responsive UI, sound + reduced-motion toggles.

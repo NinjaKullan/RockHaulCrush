@@ -78,14 +78,25 @@ console.log('timer frozen while paused:', pausedTimer === (await text('.hud-time
 await page.keyboard.press('Escape')
 await page.waitForTimeout(300)
 
-// 8. Drive to the finish (long haul)
+// 8. Drive to the finish (long haul), snapshotting the late-course hazards
 await page.keyboard.down('KeyW')
+const lateShots = [
+  { x: 238, name: 'e2e-late-crane', done: false },
+  { x: 249, name: 'e2e-late-mud', done: false },
+]
 for (let i = 0; i < 12; i++) {
   await page.waitForTimeout(5000)
   const dbg = await text('.debug-overlay')
   const line = dbg.split('\n').find((l) => l.startsWith('truck:')) ?? '?'
   const phase = dbg.split('\n').find((l) => l.startsWith('phase:')) ?? '?'
   console.log(`t+${(i + 1) * 5}s  ${line}  ${phase}`)
+  const x = parseFloat(line.replace('truck: ', ''))
+  for (const s of lateShots) {
+    if (!s.done && x >= s.x) {
+      s.done = true
+      await shot(s.name)
+    }
+  }
   if (phase.includes('finished') || phase.includes('failed')) break
 }
 await page.keyboard.up('KeyW')

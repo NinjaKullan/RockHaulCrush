@@ -10,6 +10,10 @@ import Rocks from './game/Rocks'
 import Scenery from './game/Scenery'
 import Terrain from './game/Terrain'
 import Truck from './game/Truck'
+import Barrels from './game/hazards/Barrels'
+import Barriers from './game/hazards/Barriers'
+import Crane from './game/hazards/Crane'
+import FallingRocks from './game/hazards/FallingRocks'
 import { useGameStore } from './game/store'
 import DebugOverlay from './ui/DebugOverlay'
 import HUD from './ui/HUD'
@@ -56,6 +60,10 @@ export default function App() {
             <Terrain />
             <Truck />
             <Rocks />
+            <Barrels />
+            <Barriers />
+            <FallingRocks />
+            <Crane />
           </Physics>
         </Suspense>
       </Canvas>

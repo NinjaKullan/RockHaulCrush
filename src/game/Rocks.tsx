@@ -29,13 +29,15 @@ function generateRocks(): RockSpec[] {
   const rng = mulberry32(C.seed)
   const rocks: RockSpec[] = []
   const [sx, sy] = truckTuning.spawn
+  // 15 rocks in a 5×3 floor layer, 5 more centered on top — the pile sits
+  // mostly below the bed walls so ordinary jostling doesn't shed cargo.
   for (let i = 0; i < C.rockCount; i++) {
-    const layer = Math.floor(i / 10)
+    const layer = i < 15 ? 0 : 1
     const col = i % 5
-    const row = Math.floor(i / 5) % 2
+    const row = layer === 0 ? Math.floor(i / 5) : 1
     const lx = -1.62 + col * 0.45 + rangeFrom(rng, -0.03, 0.03)
-    const lz = (row === 0 ? -0.33 : 0.33) + rangeFrom(rng, -0.04, 0.04)
-    const ly = 0.78 + layer * 0.52
+    const lz = (row - 1) * 0.44 + rangeFrom(rng, -0.04, 0.04)
+    const ly = 0.75 + layer * 0.42
     rocks.push({
       bedOffset: [lx, ly, lz],
       position: [sx + lx, sy + ly, lz],

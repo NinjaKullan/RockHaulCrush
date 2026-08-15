@@ -40,6 +40,7 @@ export const magnet = { remaining: 0 }
 export const telemetry = {
   speed: 0,
   grounded: false,
+  inMud: false,
   fps: 0,
   bodyCount: 0,
   truckX: 0,

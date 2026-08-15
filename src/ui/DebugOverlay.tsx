@@ -24,7 +24,10 @@ export default function DebugOverlay() {
       <div>fps: {telemetry.fps.toFixed(0)}</div>
       <div>phase: {phase}</div>
       <div>speed: {telemetry.speed.toFixed(2)} m/s</div>
-      <div>grounded: {String(telemetry.grounded)}</div>
+      <div>
+        grounded: {String(telemetry.grounded)}
+        {telemetry.inMud ? ' (mud)' : ''}
+      </div>
       <div>
         truck: {telemetry.truckX.toFixed(1)}, {telemetry.truckY.toFixed(1)}
       </div>

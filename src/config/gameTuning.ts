@@ -29,7 +29,7 @@ export const truckTuning = {
   /** Reverse acceleration, m/s². */
   reverseAccel: 9,
   /** Horizontal velocity damping per second when grounded with no input. */
-  rollingDrag: 1.1,
+  rollingDrag: 0.65,
   /** Lean control strength (torque per unit mass, scaled by dt). */
   leanTorque: 7.5,
   /** Rigid-body angular damping — resists endless spinning without killing bounce. */
@@ -55,8 +55,8 @@ export const truckTuning = {
 
 export const cargoTuning = {
   rockCount: 20,
-  rockMinRadius: 0.16,
-  rockMaxRadius: 0.22,
+  rockMinRadius: 0.15,
+  rockMaxRadius: 0.19,
   rockFriction: 1.0,
   rockRestitution: 0.12,
   rockDensity: 1.5,
@@ -82,7 +82,7 @@ export const cameraTuning = {
 
 export const gameplayTuning = {
   /** Countdown timer for a run, seconds. */
-  timeLimit: 90,
+  timeLimit: 105,
   /** Time penalty applied on checkpoint recovery, seconds. */
   recoveryPenaltySeconds: 5,
   /** Rocks below this world-y are lost (out of the playable course). */
@@ -104,6 +104,50 @@ export const magnetTuning = {
   upwardBias: 0.4,
   /** Rocks moving faster than this are not pulled harder (prevents slingshots). */
   maxPullSpeed: 13,
+} as const
+
+export const mudTuning = {
+  /** Multiplier on throttle force while in mud. */
+  accelFactor: 0.35,
+  /** Extra per-second velocity drag while in mud. */
+  extraDrag: 1.8,
+} as const
+
+export const barrelTuning = {
+  count: 2,
+  /** Seconds between a single barrel's respawns (staggered ⇒ one every period/count). */
+  period: 7,
+  /** Initial downhill speed, m/s (toward -x, into the oncoming truck). */
+  launchSpeed: 2.5,
+  radius: 0.42,
+  density: 0.35,
+  /** Reset when a barrel rolls past this x or exceeds its lifetime. */
+  minX: 24,
+  lifetime: 6,
+} as const
+
+export const fallingRockTuning = {
+  /** Full cycle per spawn point, seconds. */
+  period: 6,
+  /** Telegraph duration before the drop, seconds. */
+  warnTime: 1.4,
+  /** How long a fallen boulder rests before vanishing, seconds. */
+  restTime: 2.2,
+  dropHeight: 12,
+  radius: 0.55,
+  density: 2,
+} as const
+
+export const craneTuning = {
+  /** Swing period, seconds. */
+  period: 4.5,
+  /** Max swing angle, radians. */
+  amplitude: 0.95,
+  /** Pendulum pivot height above ground. */
+  pivotY: 5.7,
+  cableLength: 4.35,
+  /** Concrete block half-extent. */
+  blockHalf: 0.45,
 } as const
 
 export const scoringTuning = {
