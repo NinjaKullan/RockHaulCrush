@@ -16,6 +16,7 @@ import Crane from './game/hazards/Crane'
 import FallingRocks from './game/hazards/FallingRocks'
 import { useGameStore } from './game/store'
 import DebugOverlay from './ui/DebugOverlay'
+import HintSystem from './ui/HintSystem'
 import HUD from './ui/HUD'
 import { CountdownOverlay, PauseMenu, ResultsScreen, TitleScreen } from './ui/screens'
 
@@ -27,6 +28,7 @@ export default function App() {
     <>
       <KeyboardManager />
       {phase !== 'title' && <HUD />}
+      <HintSystem />
       {phase === 'title' && <TitleScreen />}
       {phase === 'countdown' && <CountdownOverlay />}
       {phase === 'paused' && <PauseMenu />}

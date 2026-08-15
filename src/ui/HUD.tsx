@@ -49,7 +49,15 @@ export default function HUD() {
       <div className={`hud-timer${timeCritical ? ' hud-timer-critical' : ''}`}>
         {minutes}:{String(seconds).padStart(2, '0')}
       </div>
-      <div className={`hud-magnet${magnetActive ? ' hud-magnet-active' : ''}`}>
+      <div
+        className={`hud-magnet${
+          magnetActive
+            ? ' hud-magnet-active'
+            : cargo.recoverable > 0 && magnetCharges > 0
+              ? ' hud-magnet-ready'
+              : ''
+        }`}
+      >
         MAGNET {'⚡'.repeat(magnetCharges)}
         {magnetCharges === 0 && !magnetActive ? '—' : ''}
         <span className="hud-magnet-key"> [SPACE]</span>

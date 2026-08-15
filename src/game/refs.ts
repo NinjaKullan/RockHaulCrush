@@ -41,6 +41,8 @@ export const telemetry = {
   speed: 0,
   grounded: false,
   inMud: false,
+  /** Chassis up-vector's world-y: 1 upright, -1 upside down. */
+  upY: 1,
   fps: 0,
   bodyCount: 0,
   truckX: 0,

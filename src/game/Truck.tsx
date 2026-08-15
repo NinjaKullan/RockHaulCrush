@@ -154,6 +154,7 @@ export default function Truck() {
     telemetry.speed = vAlong
     telemetry.grounded = grounded
     telemetry.inMud = inMud
+    telemetry.upY = _up.y
     telemetry.truckX = t.x
     telemetry.truckY = t.y
     telemetry.bodyCount = world.bodies.len()

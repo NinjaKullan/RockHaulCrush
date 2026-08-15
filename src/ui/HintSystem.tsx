@@ -1,0 +1,125 @@
+import { useEffect, useRef, useState } from 'react'
+import { telemetry } from '../game/refs'
+import { useGameStore } from '../game/store'
+
+/**
+ * Contextual tutorial toasts: each fires once per run, at the moment the
+ * mechanic matters. Priority: emergencies (flipped, spill) over zone intros.
+ */
+
+interface Hint {
+  id: string
+  text: string
+  /** Higher wins when several are eligible in the same tick. */
+  priority: number
+  test: (ctx: HintContext) => boolean
+}
+
+interface HintContext {
+  x: number
+  recoverable: number
+  magnetCharges: number
+  inMud: boolean
+  flippedFor: number
+}
+
+const HINTS: Hint[] = [
+  {
+    id: 'flip',
+    priority: 3,
+    text: '🔄 Flipped! Press R to recover at the last checkpoint (−5 s).',
+    test: (c) => c.flippedFor > 1.2,
+  },
+  {
+    id: 'spill',
+    priority: 2,
+    text: '🧲 Rocks spilled! Drive close and press SPACE — the magnet pulls them back into the bed.',
+    test: (c) => c.recoverable >= 3 && c.magnetCharges > 0,
+  },
+  {
+    id: 'barrels',
+    priority: 1,
+    text: '⚠ Barrels roll down this climb on a rhythm — wait for one to pass, then go!',
+    test: (c) => c.x > 22 && c.x < 30,
+  },
+  {
+    id: 'barriers',
+    priority: 1,
+    text: '🚧 Barriers are pushable — nudge through slowly, or smash them and risk the cargo.',
+    test: (c) => c.x > 72 && c.x < 77,
+  },
+  {
+    id: 'mud',
+    priority: 1,
+    text: '💦 Mud! Keep the throttle pinned and grind through.',
+    test: (c) => c.inMud,
+  },
+  {
+    id: 'rockfall',
+    priority: 1,
+    text: '⚠ Falling rocks ahead — the amber rings mark where they land. Don’t linger on them!',
+    test: (c) => c.x > 114 && c.x < 121,
+  },
+  {
+    id: 'crane',
+    priority: 1,
+    text: '⚠ Swinging crane load — watch the rhythm and pass right after it sweeps away.',
+    test: (c) => c.x > 230 && c.x < 237,
+  },
+]
+
+const TOAST_SECONDS = 4.5
+
+export default function HintSystem() {
+  const phase = useGameStore((s) => s.phase)
+  const runId = useGameStore((s) => s.runId)
+  const [active, setActive] = useState<Hint | null>(null)
+  const shown = useRef<Set<string>>(new Set())
+  const flipStart = useRef<number | null>(null)
+  const hideAt = useRef(0)
+
+  // Fresh hints each run.
+  useEffect(() => {
+    shown.current = new Set()
+    flipStart.current = null
+    setActive(null)
+  }, [runId])
+
+  useEffect(() => {
+    if (phase !== 'playing') return
+    const id = setInterval(() => {
+      const s = useGameStore.getState()
+      const now = performance.now()
+
+      // Track how long the truck has been upside-down and slow.
+      if (telemetry.upY < -0.2 && Math.abs(telemetry.speed) < 2) {
+        if (flipStart.current === null) flipStart.current = now
+      } else {
+        flipStart.current = null
+      }
+
+      if (active && now < hideAt.current) return
+      if (active) setActive(null)
+
+      const ctx: HintContext = {
+        x: telemetry.truckX,
+        recoverable: s.cargo.recoverable,
+        magnetCharges: s.magnetCharges,
+        inMud: telemetry.inMud,
+        flippedFor: flipStart.current === null ? 0 : (now - flipStart.current) / 1000,
+      }
+      const eligible = HINTS.filter((h) => !shown.current.has(h.id) && h.test(ctx)).sort(
+        (a, b) => b.priority - a.priority,
+      )
+      if (eligible.length > 0) {
+        shown.current.add(eligible[0].id)
+        hideAt.current = now + TOAST_SECONDS * 1000
+        setActive(eligible[0])
+      }
+    }, 250)
+    return () => clearInterval(id)
+  }, [phase, active])
+
+  if (!active || phase !== 'playing') return null
+  return <div className="hint-toast">{active.text}</div>
+}

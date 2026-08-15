@@ -20,6 +20,11 @@ export function TitleScreen() {
           Deliver <b>{scoringTuning.starThresholds[0]}+</b> to score —{' '}
           <b>{scoringTuning.starThresholds[2]}</b> for three stars.
         </p>
+        <p>
+          Hazards can't be steered around — <b>time them</b>: wait out the barrels, read the
+          warnings, pass the crane on its upswing. Spilled rocks aren't gone: drive close and
+          hit <b>Space</b> — the Cargo Magnet pulls them back aboard (3 charges).
+        </p>
         <p className="controls-line">
           <b>W/↑</b> drive · <b>S/↓</b> brake/reverse · <b>A/←</b> lean back ·{' '}
           <b>D/→</b> lean forward · <b>Space</b> cargo magnet · <b>R</b> recover ·{' '}
