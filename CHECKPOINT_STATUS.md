@@ -23,8 +23,8 @@ wants to dodge. The game is now a **chase-camera lane-dodging hauler**:
 
 ## What exists now
 
-The full hazard set on the Quarry Run course. Every hazard is a timing/speed
-decision (the game is plane-locked by design — no lateral dodging):
+The full hazard set on the Quarry Run course — dodge laterally, or decide
+between speed and cargo:
 
 - **Mud** (×2): flat before the first ramp, and guarding the final delivery
   approach. Throttle force ×0.35 + heavy drag inside; dark wet patch visual.
