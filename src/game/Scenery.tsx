@@ -1,16 +1,18 @@
 import { useMemo } from 'react'
 import { mulberry32, rangeFrom } from './rng'
-import { levelBounds } from './levels/quarryRun'
+import { course } from './levels/quarryRun'
+import { useGameStore } from './store'
 
 /** Non-physics background: low-poly hills and chunky clouds along the course. */
 export default function Scenery() {
+  const trackKind = useGameStore((s) => s.trackKind)
   const { hills, clouds, boulders } = useMemo(() => {
     const rng = mulberry32(20260815)
     const hillColors = ['#d9995c', '#c9863f', '#e0a86b', '#c07f45', '#d1904f']
     const hills = []
     // Hills flank BOTH sides of the road (chase view looks down the corridor).
     for (const side of [-1, 1]) {
-      for (let x = levelBounds.minX - 30; x < levelBounds.maxX + 80; x += rangeFrom(rng, 14, 24)) {
+      for (let x = course.levelBounds.minX - 30; x < course.levelBounds.maxX + 80; x += rangeFrom(rng, 14, 24)) {
         hills.push({
           pos: [x, -3, side * rangeFrom(rng, 26, 70)] as [number, number, number],
           scale: [rangeFrom(rng, 14, 30), rangeFrom(rng, 5, 12), rangeFrom(rng, 10, 18)] as [
@@ -25,7 +27,7 @@ export default function Scenery() {
     // Far backdrop wall of hills past the delivery zone.
     for (let z = -70; z <= 70; z += rangeFrom(rng, 16, 26)) {
       hills.push({
-        pos: [levelBounds.maxX + rangeFrom(rng, 50, 90), -3, z] as [number, number, number],
+        pos: [course.levelBounds.maxX + rangeFrom(rng, 50, 90), -3, z] as [number, number, number],
         scale: [rangeFrom(rng, 18, 30), rangeFrom(rng, 8, 15), rangeFrom(rng, 14, 24)] as [
           number,
           number,
@@ -35,7 +37,7 @@ export default function Scenery() {
       })
     }
     const clouds = []
-    for (let x = levelBounds.minX - 20; x < levelBounds.maxX + 60; x += rangeFrom(rng, 20, 34)) {
+    for (let x = course.levelBounds.minX - 20; x < course.levelBounds.maxX + 60; x += rangeFrom(rng, 20, 34)) {
       clouds.push({
         pos: [x, rangeFrom(rng, 14, 22), rangeFrom(rng, -40, 40)] as [number, number, number],
         scale: rangeFrom(rng, 0.9, 2.0),
@@ -43,7 +45,7 @@ export default function Scenery() {
     }
     // Roadside boulders just past the curb line.
     const boulders = []
-    for (let x = levelBounds.minX; x < levelBounds.maxX; x += rangeFrom(rng, 16, 30)) {
+    for (let x = course.levelBounds.minX; x < course.levelBounds.maxX; x += rangeFrom(rng, 16, 30)) {
       boulders.push({
         pos: [x, 0, (rng() > 0.5 ? 1 : -1) * rangeFrom(rng, 6, 10)] as [number, number, number],
         s: rangeFrom(rng, 0.7, 1.8),
@@ -51,7 +53,7 @@ export default function Scenery() {
       })
     }
     return { hills, clouds, boulders }
-  }, [])
+  }, [trackKind])
 
   return (
     <group>

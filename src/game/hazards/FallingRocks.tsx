@@ -3,7 +3,7 @@ import { RigidBody, useBeforePhysicsStep, type RapierRigidBody } from '@react-th
 import { useRef } from 'react'
 import * as THREE from 'three'
 import { fallingRockTuning as F } from '../../config/gameTuning'
-import { fallingRockSpawns } from '../levels/quarryRun'
+import { course } from '../levels/quarryRun'
 
 /**
  * Telegraphed falling boulders over the second washboard. Cycle per spawn:
@@ -13,12 +13,12 @@ import { fallingRockSpawns } from '../levels/quarryRun'
 export default function FallingRocks() {
   const bodies = useRef<(RapierRigidBody | null)[]>([])
   const markers = useRef<(THREE.Mesh | null)[]>([])
-  const clocks = useRef(fallingRockSpawns.map((s) => -s.phase))
-  const dropped = useRef(fallingRockSpawns.map(() => false))
+  const clocks = useRef(course.fallingRockSpawns.map((s) => -s.phase))
+  const dropped = useRef(course.fallingRockSpawns.map(() => false))
 
   useBeforePhysicsStep((world) => {
     const dt = world.timestep
-    for (let i = 0; i < fallingRockSpawns.length; i++) {
+    for (let i = 0; i < course.fallingRockSpawns.length; i++) {
       const body = bodies.current[i]
       if (!body) continue
       clocks.current[i] += dt
@@ -28,7 +28,7 @@ export default function FallingRocks() {
       const inFallWindow = t >= F.warnTime && t < F.warnTime + F.restTime + 1.5
       if (inFallWindow && !dropped.current[i]) {
         dropped.current[i] = true
-        const s = fallingRockSpawns[i]
+        const s = course.fallingRockSpawns[i]
         body.setEnabled(true)
         body.setTranslation({ x: s.x, y: s.groundY + F.dropHeight, z: s.z }, true)
         body.setLinvel({ x: 0, y: 0, z: 0 }, true)
@@ -42,7 +42,7 @@ export default function FallingRocks() {
 
   // Warning markers pulse on the render loop (visual only).
   useFrame(() => {
-    for (let i = 0; i < fallingRockSpawns.length; i++) {
+    for (let i = 0; i < course.fallingRockSpawns.length; i++) {
       const marker = markers.current[i]
       if (!marker) continue
       const t = ((clocks.current[i] % F.period) + F.period) % F.period
@@ -57,7 +57,7 @@ export default function FallingRocks() {
 
   return (
     <>
-      {fallingRockSpawns.map((s, i) => (
+      {course.fallingRockSpawns.map((s, i) => (
         <group key={i}>
           <RigidBody
             ref={(el) => {

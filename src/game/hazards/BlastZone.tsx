@@ -6,6 +6,7 @@ import { blastZone as BZ } from '../levels/quarryRun'
 import { mulberry32, rangeFrom } from '../rng'
 import { emitParticles } from '../Particles'
 import { sfx } from '../audio'
+import { gameRefs } from '../refs'
 import { useGameStore } from '../store'
 
 /**
@@ -44,17 +45,31 @@ export default function BlastZone() {
     if (state.current === 'warned') {
       state.current = 'blasted'
       if (playing) sfx.blast()
+      // Dust plume + secondary smoke; the rubble itself is the real payload.
       emitParticles({
         x: BZ.x,
         y: BZ.groundY + 2.5,
         z: BZ.faceZ + 0.5,
-        count: 22,
+        count: 34,
         color: 0x8a7458,
-        speed: 5,
-        spread: 1.4,
-        up: 6,
-        life: 1.1,
-        size: 0.3,
+        speed: 6,
+        spread: 1.6,
+        up: 7,
+        life: 1.5,
+        size: 0.34,
+      })
+      emitParticles({
+        x: BZ.x,
+        y: BZ.groundY + 1.2,
+        z: BZ.faceZ + 1.5,
+        count: 16,
+        color: 0xb8a488,
+        speed: 4,
+        spread: 1.8,
+        up: 3,
+        life: 1.8,
+        size: 0.28,
+        gravity: 2.5,
       })
       for (let i = 0; i < BZ.rubbleCount; i++) {
         const body = bodies.current[i]
@@ -62,31 +77,34 @@ export default function BlastZone() {
         body.setEnabled(true)
         body.setTranslation(
           {
-            x: BZ.x + rangeFrom(launchRng, -3, 3),
-            y: BZ.groundY + rangeFrom(launchRng, 1.5, 4.5),
+            x: BZ.x + rangeFrom(launchRng, -4, 4),
+            y: BZ.groundY + rangeFrom(launchRng, 1.2, 4.8),
             z: BZ.faceZ + 0.3,
           },
           true,
         )
         body.setLinvel(
           {
-            x: rangeFrom(launchRng, -2, 2),
-            y: rangeFrom(launchRng, 2, 5),
-            z: rangeFrom(launchRng, 4, 9.5),
+            x: rangeFrom(launchRng, -2.5, 2.5),
+            y: rangeFrom(launchRng, 2, 6),
+            z: rangeFrom(launchRng, 3.5, 10),
           },
           true,
         )
         body.setAngvel(
-          { x: rangeFrom(launchRng, -4, 4), y: 0, z: rangeFrom(launchRng, -4, 4) },
+          { x: rangeFrom(launchRng, -5, 5), y: 0, z: rangeFrom(launchRng, -5, 5) },
           true,
         )
       }
     }
 
-    // Retire rubble after the rest window
-    if (t > BZ.warnTime + BZ.restTime) {
+    // Rubble persists until the next detonation recycles it. Only chunks the
+    // player has left well behind are retired early (they'd never be seen).
+    const truck = gameRefs.truck
+    if (truck) {
+      const tx = truck.translation().x
       for (const body of bodies.current) {
-        if (body?.isEnabled()) body.setEnabled(false)
+        if (body?.isEnabled() && tx - body.translation().x > 30) body.setEnabled(false)
       }
     }
   })
@@ -118,8 +136,8 @@ export default function BlastZone() {
           ccd
         >
           <mesh castShadow>
-            <dodecahedronGeometry args={[0.32 + (i % 3) * 0.07, 0]} />
-            <meshStandardMaterial color="#9a8265" flatShading />
+            <dodecahedronGeometry args={[0.24 + (i % 4) * 0.09, 0]} />
+            <meshStandardMaterial color={i % 2 === 0 ? '#9a8265' : '#87745a'} flatShading />
           </mesh>
         </RigidBody>
       ))}

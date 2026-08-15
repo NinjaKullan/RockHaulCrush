@@ -2,13 +2,16 @@
 
 **Keep the wheels down and the rocks in!**
 
-A free, browser-based 2.5D arcade physics game. Drive a quarry dump truck
-carrying 20 unstable rocks through a hazardous work site and reach the delivery
-zone before time runs out — the more rocks you keep, the more stars you earn.
+A free, browser-based 3D arcade hauling game. Drive a quarry rigid dump truck
+carrying 20 loose rocks down a hazardous haul road — dodge rolling barrels,
+falling rocks, blast rubble, and a swinging crane load — and reach the
+delivery zone before time runs out. The more rocks you keep, the more stars
+you earn.
 
 Built with Vite, TypeScript, React, three.js (React Three Fiber), and the
-Rapier physics engine. All dependencies are free and open source; the game
-runs fully offline with no CDN or network requests.
+Rapier physics engine. **Everything is procedural**: geometry, effects, and
+audio are all code-generated. No third-party assets, no CDN, no network
+requests after load, no telemetry.
 
 ## Requirements
 
@@ -21,39 +24,64 @@ runs fully offline with no CDN or network requests.
 | ----------------- | --------------------------------------------------- |
 | `npm install`     | Install dependencies (first time only)              |
 | `npm run dev`     | Start the dev server at http://localhost:5173/      |
-| `npm test`        | Run the automated game-rule tests (Vitest)          |
+| `npm test`        | Run the automated game-rule tests (Vitest, 57)      |
 | `npm run build`   | Type-check and produce a production build in `dist` |
 | `npm run preview` | Serve the production build locally                  |
 
-Optional headless smoke test (requires a running dev server):
-`node scripts/smoke.mjs` — loads the game in headless Chromium, verifies the
-WebGL canvas, captures screenshots, and fails on console errors.
+Headless verification (dev server must be running):
+`node scripts/smoke.mjs` (load + console-error check) and
+`node scripts/fullrun.mjs <outdir>` (full game-loop drive test).
 
-## Controls
+## How to play
 
-| Key           | Action                          |
-| ------------- | ------------------------------- |
-| `W` / `↑`     | Accelerate                      |
-| `S` / `↓`     | Brake / reverse                 |
-| `A` / `←`     | Steer left                      |
-| `D` / `→`     | Steer right                     |
-| `Space`       | Cargo Magnet                    |
-| `R`           | Recover at latest checkpoint    |
-| `Esc`         | Pause / resume                  |
-| `` ` ``       | Toggle developer debug overlay  |
+Pick **Standard Run** (~290 m, 1:45) or **Long Haul** (~430 m, 2:50) on the
+title screen. Deliver 12+ rocks to score; 16+ for two stars; all 20 for three.
 
-## Project status
+| Key       | Action                         |
+| --------- | ------------------------------ |
+| `W` / `↑` | Accelerate                     |
+| `S` / `↓` | Brake / reverse                |
+| `A` / `←` | Steer left                     |
+| `D` / `→` | Steer right                    |
+| `Space`   | Cargo Magnet (3 charges — pulls spilled rocks back into the bed) |
+| `R`       | Recover at latest checkpoint (−5 s) |
+| `Esc`     | Pause / resume                 |
+| `` ` ``   | Developer debug overlay        |
 
-Checkpoint-based build in progress. See `CHECKPOINT_STATUS.md` for current
-state, architecture, and known issues.
+Hazards can't be out-muscled — dodge them or time them: barrels pick lanes,
+falling rocks mark their landing spots, the blast zone telegraphs with a red
+beacon and klaxon before throwing rubble across the road, and the crane load
+swings on a fixed rhythm. Mud and ramps are speed decisions: fast risks
+cargo, slow burns clock.
 
-- ✅ Checkpoint 0 — engine baseline
-- ✅ Checkpoint 1 — core-fun graybox
-- ✅ Checkpoint 2 — complete vertical slice
-- ✅ Checkpoint 3 — Quarry Run course content (chase-camera pivot)
-- ✅ Checkpoint 4 — presentation: blast hazard, particles, audio, settings (this build)
-- ⬜ Checkpoint 5 — final QA and performance
+## Architecture
 
-## Tuning
+- `src/config/gameTuning.ts` — **every gameplay constant** (physics, truck
+  handling, suspension, cargo, magnet, hazards, camera, scoring)
+- `src/game/levels/quarryRun.ts` — course builder producing the standard and
+  long variants: slabs, hazard placements, checkpoints, delivery, profile
+- `src/game/Truck.tsx` — single-chassis arcade vehicle: raycast suspension,
+  drive/brake/steer forces, airborne auto-level, dust/engine hooks
+- `src/game/Rocks.tsx` + `cargoRules.ts` + `cargoMath.ts` — the 20 cargo
+  bodies and the pure, unit-tested rock state machine
+  (inBed/recoverable/lost/delivered) plus magnet forces
+- `src/game/GameDirector.tsx` — timer, checkpoints, delivery snapshot,
+  recovery execution
+- `src/game/hazards/` — Barrels, Barriers, FallingRocks, BlastZone, Crane
+- `src/game/store.ts` — zustand state machine
+  (title → countdown → playing ⇄ paused → finished/failed)
+- `src/game/audio.ts` — procedural WebAudio (gesture-initialized)
+- `src/game/Particles.tsx` — pooled instanced particle system
+- `src/ui/` — HUD, screens, contextual hint system, debug overlay
 
-All gameplay-affecting constants live in `src/config/gameTuning.ts`.
+## Status
+
+All six build checkpoints complete. See `CHECKPOINT_STATUS.md` for the final
+QA report, known limitations, and suggested next features.
+
+## Licensing
+
+All code and generated content in this repository is original. No third-party
+art, audio, or model assets are used or redistributed. Dependencies are
+standard open-source npm packages (MIT/Apache-style licenses) resolved at
+build time.

@@ -1,7 +1,7 @@
 import { useFrame } from '@react-three/fiber'
 import { useBeforePhysicsStep } from '@react-three/rapier'
 import { useRef } from 'react'
-import { checkpoints, deliveryZone } from './levels/quarryRun'
+import { course } from './levels/quarryRun'
 import { countStates, deliverSnapshot } from './cargoRules'
 import { cargo, gameRefs, magnet } from './refs'
 import { useGameStore } from './store'
@@ -33,15 +33,15 @@ export default function GameDirector() {
     const t = truck.translation()
 
     // --- Checkpoint progression
-    for (let i = checkpoints.length - 1; i > store.checkpointIndex; i--) {
-      if (t.x >= checkpoints[i].x) {
+    for (let i = course.checkpoints.length - 1; i > store.checkpointIndex; i--) {
+      if (t.x >= course.checkpoints[i].x) {
         store.reachCheckpoint(i)
         break
       }
     }
 
     // --- Delivery: crossing the finish line snapshots in-bed cargo
-    if (store.phase === 'playing' && t.x >= deliveryZone.finishX) {
+    if (store.phase === 'playing' && t.x >= course.deliveryZone.finishX) {
       const snapshot = deliverSnapshot(cargo.states)
       cargo.states = snapshot.states
       store.setCargo(countStates(cargo.states))
@@ -57,7 +57,7 @@ export default function GameDirector() {
     // --- Recovery execution
     if (processedRecoveries.current < store.recoverRequests) {
       processedRecoveries.current = store.recoverRequests
-      const cp = checkpoints[store.checkpointIndex]
+      const cp = course.checkpoints[store.checkpointIndex]
       truck.setTranslation({ x: cp.x, y: cp.y, z: 0 }, true)
       truck.setRotation({ x: 0, y: 0, z: 0, w: 1 }, true)
       truck.setLinvel({ x: 0, y: 0, z: 0 }, true)

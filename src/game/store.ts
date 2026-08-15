@@ -8,6 +8,7 @@ import {
 import type { CargoCounts } from './cargoRules'
 import { magnet } from './refs'
 import { isSoundEnabled, setSoundEnabled } from './audio'
+import { course, selectCourse, type TrackKind } from './levels/quarryRun'
 import { particleSettings } from './Particles'
 
 const REDUCED_MOTION_KEY = 'rhr-reduced-motion'
@@ -54,8 +55,10 @@ interface GameStore {
   debugVisible: boolean
   soundOn: boolean
   reducedMotion: boolean
+  trackKind: TrackKind
   toggleSound: () => void
   toggleReducedMotion: () => void
+  selectTrack: (kind: TrackKind) => void
 
   startRun: () => void
   beginPlaying: () => void
@@ -98,9 +101,9 @@ const freshCargo = (): CargoCounts => ({
   delivered: 0,
 })
 
-/** State shared by every new run. */
+/** State shared by every new run. Time limit comes from the active course. */
 const freshRun = () => ({
-  timeLeft: gameplayTuning.timeLimit,
+  timeLeft: course.timeLimit,
   cargo: freshCargo(),
   magnetCharges: magnetTuning.charges,
   magnetActive: false,
@@ -118,6 +121,14 @@ export const useGameStore = create<GameStore>((set, get) => ({
   debugVisible: false,
   soundOn: isSoundEnabled(),
   reducedMotion: loadReducedMotion(),
+  trackKind: 'standard',
+
+  selectTrack: (kind) => {
+    const phase = get().phase
+    if (phase !== 'title' && phase !== 'finished' && phase !== 'failed') return
+    selectCourse(kind)
+    set({ trackKind: kind })
+  },
 
   toggleSound: () => {
     const next = !get().soundOn

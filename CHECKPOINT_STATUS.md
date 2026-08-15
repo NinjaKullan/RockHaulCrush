@@ -1,75 +1,79 @@
 # Checkpoint Status
 
-## Current checkpoint: 4 — Presentation (awaiting approval)
+## Current checkpoint: 5 — Final QA (awaiting final approval)
 
 Date: 2026-08-15
 
-## What exists now
+## Checkpoint 5 changes (from your CP4 feedback)
 
-The chase-camera hauler with full feedback: particles, procedural audio,
-the user-requested cliff-blasting hazard, contextual hints, settings, and
-polished result presentation.
+1. **Engine sound rebuilt** — the sawtooth "bee/clogged muffler" is gone.
+   The engine is now a low diesel rumble: a soft triangle pair in a very
+   narrow pitch band (~31–47 Hz, so no whining up/down) plus looped
+   brown-noise "exhaust breath" whose volume, not pitch, carries the speed
+   feel.
+2. **Long Haul track option** — the title screen now offers Standard Run
+   (~290 m, 1:45) and Long Haul (~430 m, 2:50). The level module became a
+   course builder; Long Haul adds a third act (washboard, third climb with
+   two more falling-rock lanes, high plateau, descent, mud flat, second
+   whoops set, barrier pair, a third ramp-and-gap, second mud grind) with
+   8 checkpoints and its own delivery zone.
+3. **Blasting made more authentic** — 12 rubble chunks per detonation
+   (varied sizes) instead of 7, launched with wider scatter and a much
+   bigger dust plume, and **debris no longer fades away**: it stays on the
+   road as a real obstacle field until the next detonation recycles it
+   (chunks far behind you are retired silently).
 
-### New this checkpoint
+## Final QA performed (headless Chromium, software rendering)
 
-- **Cliff-blasting zone** (user request) on the long climb: chunky cliff face
-  with charge wires on the left of the road, roadside red beacon. Cycle: 2.2 s
-  flashing-beacon + klaxon telegraph → detonation (boom + smoke burst) →
-  7 rubble chunks physically thrown across the road → debris rests 3 s and
-  vanishes. Dodge right or hang back.
-- **Particle system**: pooled instanced low-poly shards (320 max, zero
-  frame-loop allocation). Wheel dust when rolling fast, brown mud splatter,
-  landing-impact bursts scaled by fall speed, teal sparkles when the magnet
-  recaptures a rock, blast smoke.
-- **Procedural audio** (WebAudio, no assets, no network): engine tone tracking
-  speed/throttle, landing impacts, brake skids, cargo-spill cue, magnet
-  arpeggio + per-rock catch chime, blast klaxon/boom, countdown beeps,
-  delivery fanfare with staggered star chimes, failure sting. The context is
-  created/resumed only from user gestures (Start click / keydown) per
-  autoplay rules; mute state persists.
-- **Settings**: sound toggle and reduced-motion toggle on title and pause
-  screens, persisted; reduced motion disables the speed-FOV boost and cuts
-  particle counts ~65%. Defaults respect `prefers-reduced-motion`.
-- **HUD/UI polish**: cargo chip flashes red on rock loss, star reveal pops in
-  with staggered animation and chimes, blast-zone hint added.
+- **Standard track**: full loop title→countdown→drive→magnet→recovery→
+  pause(timer frozen)→delivery→results→replay; body count stable across
+  runs; no console errors.
+- **Long Haul**: track selection honored (timer 2:48), all ~430 m drivable,
+  Act 3 hazards active, delivery + results + rejection path working.
+- **Timeout path browser-verified** (previously unit-only): 105 s idle run
+  ends in "Time's Up!", and replay from the failure screen restores a clean
+  20/20 run.
+- **Resize**: 1280×720 → 1920×1080 mid-session; canvas tracks the viewport;
+  HUD legible at both.
+- **Repeated restarts**: no body duplication or state leakage (fixed body
+  count per course; cargo/checkpoint/magnet reset verified every run).
+- **Tests**: 57 passing (scoring, bed geometry, RNG, cargo state machine,
+  store lifecycle, both course datasets). Production build clean.
+- **No network requests after load; no third-party assets** (README
+  documents licensing).
 
-## Commands
+## Performance notes (honest)
 
-- `npm run dev` — dev server at http://localhost:5173/
-- `npm test` — Vitest, 48 tests
-- `npm run build` — production build (passing)
-- `node scripts/fullrun.mjs <outdir>` — headless end-to-end
+- Headless SwiftShader runs at ~10–30 FPS — that is software rendering and
+  **not representative of real hardware**. On a normal laptop GPU this scene
+  (low-poly, one shadow map, ≤46 physics bodies, pooled particles) should
+  hold 60 FPS, but I cannot measure your machine from here: check the FPS
+  readout in the debug overlay (`` ` ``) during your run and tell me if it
+  dips below ~45.
+- Physics: rocks/rubble sleep when settled; hazard bodies are pooled and
+  disabled between cycles; the whole world is rebuilt per run (leak-proof
+  restart by construction).
 
-## Verified this checkpoint (headless Chromium)
+## Known limitations
 
-- Blast cycle fires on schedule: beacon flash → rubble thrown across the road
-  → debris rests and despawns; hint toast appears on approach
-- Full run completes: 17/20 delivered ★★ by the straight-line bot; recovery,
-  pause-freeze, replay reset all intact (body count stable at 40 across runs)
-- No console errors; 48 tests + production build pass
-- Audio graph code runs headless without errors; actual sound output and
-  mix balance are **not** verifiable headlessly — needs your ears
+- Audio mix is tuned by construction; only your ears can sign it off.
+- Magnet can pull rocks through thin terrain lips (rare; accepted).
+- Blast rubble variance makes blind full-throttle runs noticeably harsher —
+  intended, but flag it if it feels unfair after the telegraph.
+- No gamepad/touch input (input layer is isolated in KeyboardManager and
+  extensible).
+- Single scenery seed — background layout is identical between runs.
 
-## Known issues / honest notes
+## Suggested next features (priority order)
 
-- Sound levels are a first pass tuned by construction, not listening. Tell me
-  what's too loud/quiet.
-- Blast rubble can rest in your path — intended (it's a quarry), and it
-  despawns after ~3 s; magnet-recoverable rocks are unaffected.
-- Timeout fail path remains unit-tested only (90 s browser wait skipped).
-- Magnet can still pull rocks through thin terrain lips (rare in the new
-  layout; accepted).
-- Headless FPS (~11) is software rendering; not representative.
+1. Gamepad + touch/mobile controls
+2. A third course or a procedural "endless haul" mode
+3. Per-track best times + a simple medal board (localStorage)
+4. Ghost replay of your best run
+5. Weather/time-of-day variants (dusk hauling, rain reducing grip)
+6. More machine hazards (wheel loader crossing, conveyor spill)
 
-## Subjective feedback wanted
+## Awaiting final approval
 
-1. Audio mix: engine volume vs. impacts vs. UI chimes?
-2. Does the blast zone read instantly? Is the 2.2 s warning enough at speed?
-3. Dust/particles: too much, too little?
-4. Star reveal + fanfare: satisfying?
-
-## Next checkpoint: 5 — Final QA and performance
-
-Full start-to-finish browser test, physics edge cases, repeated
-restart/replay leak checks, performance review, resource cleanup,
-accessibility/keyboard focus, final documentation and handoff.
+Per the protocol this is the last checkpoint: play both tracks, listen to
+the new engine, watch a blast cycle up close, and give the final word.

@@ -1,5 +1,5 @@
 import { CuboidCollider, RigidBody } from '@react-three/rapier'
-import { barrierPositions } from '../levels/quarryRun'
+import { course } from '../levels/quarryRun'
 
 /**
  * Pushable A-frame construction barriers. Light dynamic bodies: nudge through
@@ -8,7 +8,7 @@ import { barrierPositions } from '../levels/quarryRun'
 export default function Barriers() {
   return (
     <>
-      {barrierPositions.map((b, i) => (
+      {course.barrierPositions.map((b, i) => (
         <RigidBody
           key={i}
           colliders={false}

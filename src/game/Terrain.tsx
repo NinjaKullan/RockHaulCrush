@@ -1,16 +1,5 @@
 import { CuboidCollider, RigidBody } from '@react-three/rapier'
-import {
-  boundaryWalls,
-  bumps,
-  checkpoints,
-  deliveryZone,
-  groundBoxes,
-  groundTopAt,
-  mudRegions,
-  signs,
-  zWalls,
-  type GroundBox,
-} from './levels/quarryRun'
+import { course, groundTopAt, type GroundBox } from './levels/quarryRun'
 
 function GroundPiece({ box }: { box: GroundBox }) {
   return (
@@ -101,7 +90,7 @@ function CheckpointFlag({ x, y }: { x: number; y: number }) {
 /** Striped curb posts marking the drivable road edges. */
 function CurbPosts() {
   const posts: { x: number; y: number; z: number }[] = []
-  for (let x = -12; x <= 268; x += 12) {
+  for (let x = -12; x <= course.levelBounds.maxX - 6; x += 12) {
     const y = groundTopAt(x)
     posts.push({ x, y, z: 4.3 }, { x, y, z: -4.3 })
   }
@@ -119,7 +108,7 @@ function CurbPosts() {
 
 /** Delivery zone: striped pad, goal arch, and banner (pad is visual; finish is a line). */
 function DeliveryZone() {
-  const { padStartX, padEndX } = deliveryZone
+  const { padStartX, padEndX } = course.deliveryZone
   const mid = (padStartX + padEndX) / 2
   const width = padEndX - padStartX
   return (
@@ -151,33 +140,33 @@ export default function Terrain() {
   return (
     <>
       <RigidBody type="fixed" colliders={false}>
-        {groundBoxes.map((box, i) => (
+        {course.groundBoxes.map((box, i) => (
           <GroundPiece key={`g${i}`} box={box} />
         ))}
-        {bumps.map((box, i) => (
+        {course.bumps.map((box, i) => (
           <GroundPiece key={`b${i}`} box={box} />
         ))}
-        {boundaryWalls.map((box, i) => (
+        {course.boundaryWalls.map((box, i) => (
           <GroundPiece key={`w${i}`} box={box} />
         ))}
         {/* Invisible walls flanking the play plane so spilled rocks stay recoverable */}
         <CuboidCollider
-          args={[zWalls.halfLength, zWalls.height, zWalls.halfThickness]}
-          position={[zWalls.x, zWalls.height - 2, zWalls.z]}
+          args={[course.zWalls.halfLength, course.zWalls.height, course.zWalls.halfThickness]}
+          position={[course.zWalls.x, course.zWalls.height - 2, course.zWalls.z]}
         />
         <CuboidCollider
-          args={[zWalls.halfLength, zWalls.height, zWalls.halfThickness]}
-          position={[zWalls.x, zWalls.height - 2, -zWalls.z]}
+          args={[course.zWalls.halfLength, course.zWalls.height, course.zWalls.halfThickness]}
+          position={[course.zWalls.x, course.zWalls.height - 2, -course.zWalls.z]}
         />
       </RigidBody>
       {/* Non-physics course dressing */}
-      {checkpoints.slice(1).map((cp) => (
+      {course.checkpoints.slice(1).map((cp) => (
         <CheckpointFlag key={cp.x} x={cp.x} y={cp.y} />
       ))}
-      {mudRegions.map((m, i) => (
+      {course.mudRegions.map((m, i) => (
         <MudPatch key={i} {...m} />
       ))}
-      {signs.map((s, i) => (
+      {course.signs.map((s, i) => (
         <SignPost key={i} {...s} />
       ))}
       <CurbPosts />

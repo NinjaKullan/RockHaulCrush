@@ -7,7 +7,10 @@
 let ctx: AudioContext | null = null
 let master: GainNode | null = null
 let engineOsc: OscillatorNode | null = null
-let engineGain: GainNode | null = null
+let engineOsc2: OscillatorNode | null = null
+let engineOscGain: GainNode | null = null
+let engineNoiseGain: GainNode | null = null
+let engineNoiseFilter: BiquadFilterNode | null = null
 let engineFilter: BiquadFilterNode | null = null
 let enabled = true
 
@@ -46,34 +49,75 @@ export function initAudio(): void {
     master.gain.value = enabled ? 0.9 : 0
     master.connect(ctx.destination)
 
-    // Engine: saw through a lowpass, silent until throttle
-    engineOsc = ctx.createOscillator()
-    engineOsc.type = 'sawtooth'
-    engineOsc.frequency.value = 40
+    // Engine: a low diesel rumble — soft triangle pair (very narrow pitch
+    // range) plus looped brown noise for exhaust texture. No sawtooth buzz.
     engineFilter = ctx.createBiquadFilter()
     engineFilter.type = 'lowpass'
-    engineFilter.frequency.value = 220
-    engineGain = ctx.createGain()
-    engineGain.gain.value = 0
-    engineOsc.connect(engineFilter).connect(engineGain).connect(master)
+    engineFilter.frequency.value = 140
+
+    engineOsc = ctx.createOscillator()
+    engineOsc.type = 'triangle'
+    engineOsc.frequency.value = 33
+    engineOsc2 = ctx.createOscillator()
+    engineOsc2.type = 'triangle'
+    engineOsc2.frequency.value = 33 * 1.98 // near-octave, slight beat for texture
+    engineOscGain = ctx.createGain()
+    engineOscGain.gain.value = 0
+    engineOsc.connect(engineOscGain)
+    engineOsc2.connect(engineOscGain)
+    engineOscGain.connect(engineFilter)
+
+    // Looped brown noise = exhaust breath
+    const seconds = 2
+    const buffer = ctx.createBuffer(1, ctx.sampleRate * seconds, ctx.sampleRate)
+    const data = buffer.getChannelData(0)
+    let last = 0
+    for (let i = 0; i < data.length; i++) {
+      last = (last + 0.02 * (Math.random() * 2 - 1)) / 1.02
+      data[i] = last * 3.2
+    }
+    const noiseSrc = ctx.createBufferSource()
+    noiseSrc.buffer = buffer
+    noiseSrc.loop = true
+    engineNoiseFilter = ctx.createBiquadFilter()
+    engineNoiseFilter.type = 'lowpass'
+    engineNoiseFilter.frequency.value = 260
+    engineNoiseGain = ctx.createGain()
+    engineNoiseGain.gain.value = 0
+    noiseSrc.connect(engineNoiseFilter).connect(engineNoiseGain).connect(engineFilter)
+    engineFilter.connect(master)
+    noiseSrc.start()
     engineOsc.start()
+    engineOsc2.start()
   }
   if (ctx.state === 'suspended') void ctx.resume()
 }
 
-/** Drive the engine tone. speed01 in [0,1]; call ~every frame while playing. */
+/** Drive the engine rumble. speed01 in [0,1]; call ~every frame while playing. */
 export function setEngine(speed01: number, throttle: boolean): void {
-  if (!ctx || !engineOsc || !engineGain || !engineFilter) return
+  if (!ctx || !engineOsc || !engineOsc2 || !engineOscGain || !engineNoiseGain || !engineNoiseFilter || !engineFilter)
+    return
   const t = ctx.currentTime
-  const rpm = 38 + speed01 * 85 + (throttle ? 12 : 0)
-  engineOsc.frequency.setTargetAtTime(rpm, t, 0.08)
-  engineFilter.frequency.setTargetAtTime(180 + speed01 * 500, t, 0.1)
-  const target = speed01 > 0.02 || throttle ? 0.05 + speed01 * 0.06 + (throttle ? 0.025 : 0) : 0
-  engineGain.gain.setTargetAtTime(target, t, 0.12)
+  // Very narrow pitch band — volume and texture carry the speed feel instead.
+  const f = 31 + speed01 * 14 + (throttle ? 2 : 0)
+  engineOsc.frequency.setTargetAtTime(f, t, 0.25)
+  engineOsc2.frequency.setTargetAtTime(f * 1.98, t, 0.25)
+  engineFilter.frequency.setTargetAtTime(110 + speed01 * 90, t, 0.2)
+  engineNoiseFilter.frequency.setTargetAtTime(200 + speed01 * 260 + (throttle ? 120 : 0), t, 0.15)
+  const moving = speed01 > 0.02 || throttle
+  engineOscGain.gain.setTargetAtTime(moving ? 0.035 + speed01 * 0.03 : 0, t, 0.2)
+  engineNoiseGain.gain.setTargetAtTime(
+    moving ? 0.25 + speed01 * 0.3 + (throttle ? 0.15 : 0) : 0,
+    t,
+    0.18,
+  )
 }
 
 export function stopEngine(): void {
-  if (ctx && engineGain) engineGain.gain.setTargetAtTime(0, ctx.currentTime, 0.15)
+  if (!ctx) return
+  const t = ctx.currentTime
+  engineOscGain?.gain.setTargetAtTime(0, t, 0.15)
+  engineNoiseGain?.gain.setTargetAtTime(0, t, 0.15)
 }
 
 /** Short filtered-noise burst; the workhorse for impacts/skids/spills. */

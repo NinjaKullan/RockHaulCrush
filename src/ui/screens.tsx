@@ -27,15 +27,33 @@ function SettingsRow() {
   )
 }
 
-/** Title screen with start action, tutorial blurb, and best result. */
+/** Title screen with start action, track selection, tutorial, and best result. */
 export function TitleScreen() {
   const startRun = useGameStore((s) => s.startRun)
   const bestStars = useGameStore((s) => s.bestStars)
   const bestDelivered = useGameStore((s) => s.bestDelivered)
+  const trackKind = useGameStore((s) => s.trackKind)
+  const selectTrack = useGameStore((s) => s.selectTrack)
   return (
     <div className="screen screen-title">
       <h1 className="game-title">Rock Haul Rush</h1>
       <p className="game-tagline">Keep the wheels down and the rocks in!</p>
+      <div className="track-row">
+        <button
+          className={`track-button${trackKind === 'standard' ? ' track-active' : ''}`}
+          onClick={() => selectTrack('standard')}
+        >
+          Standard Run
+          <span className="track-sub">~290 m · 1:45</span>
+        </button>
+        <button
+          className={`track-button${trackKind === 'long' ? ' track-active' : ''}`}
+          onClick={() => selectTrack('long')}
+        >
+          Long Haul
+          <span className="track-sub">~430 m · 2:50</span>
+        </button>
+      </div>
       <button
         className="big-button"
         onClick={() => {

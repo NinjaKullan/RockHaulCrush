@@ -9,7 +9,7 @@ import {
 import { useEffect, useMemo, useRef } from 'react'
 import * as THREE from 'three'
 import { mudTuning, truckTuning as T } from '../config/gameTuning'
-import { mudRegions } from './levels/quarryRun'
+import { course } from './levels/quarryRun'
 import { gameRefs, input, telemetry } from './refs'
 import { useGameStore } from './store'
 import { setEngine, sfx, stopEngine } from './audio'
@@ -123,7 +123,7 @@ export default function Truck() {
     const controlsLive = useGameStore.getState().phase === 'playing'
     const vAlong = lv.x * _fwd.x + lv.y * _fwd.y
     let inMud = false
-    for (const m of mudRegions) {
+    for (const m of course.mudRegions) {
       if (t.x >= m.x0 && t.x <= m.x1) {
         inMud = true
         break
