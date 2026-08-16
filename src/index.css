@@ -178,6 +178,55 @@ body,
   background: linear-gradient(90deg, #ffd25e, #ff7a5c);
 }
 
+.hud-accel {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  margin-top: 5px;
+  justify-content: flex-end;
+}
+
+.hud-accel-label {
+  font-size: 13px;
+  font-weight: 700;
+  opacity: 0.85;
+  font-variant-numeric: tabular-nums;
+  min-width: 44px;
+  text-align: right;
+}
+
+.hud-accel-bar {
+  position: relative;
+  width: 150px;
+  height: 8px;
+  border-radius: 4px;
+  background: rgba(38, 30, 20, 0.75);
+  border: 1px solid #5c4b32;
+  overflow: hidden;
+}
+
+.hud-accel-center {
+  position: absolute;
+  left: 50%;
+  top: 0;
+  bottom: 0;
+  width: 2px;
+  margin-left: -1px;
+  background: #8c7a5c;
+}
+
+.hud-accel-fill {
+  position: absolute;
+  top: 0;
+  bottom: 0;
+  background: #7ec850;
+  transition: width 0.1s linear;
+}
+
+.hud-accel-brake {
+  background: #ff7a5c;
+}
+
 .hud-hints {
   position: absolute;
   bottom: 14px;

@@ -39,6 +39,8 @@ export const magnet = { remaining: 0 }
 /** Per-frame telemetry for HUD and the debug overlay. */
 export const telemetry = {
   speed: 0,
+  /** Smoothed longitudinal acceleration, m/s² (+ = accelerating, − = braking). */
+  accel: 0,
   grounded: false,
   inMud: false,
   inPuddle: false,

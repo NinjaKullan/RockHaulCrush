@@ -9,7 +9,12 @@ import { useRef } from 'react'
 import * as THREE from 'three'
 import { trainCrossing as TC } from '../levels/quarryRun'
 import { sfx } from '../audio'
+import { gameRefs } from '../refs'
 import { useGameStore } from '../store'
+
+/** Arm the crossing when the truck is this close: the bell rings and the gate
+ *  is fully sealed just before a full-throttle driver arrives — no free pass. */
+const ARM_DISTANCE = 42
 
 /**
  * Ore-train crossing: on a fixed cycle the crossing lights flash and a bell
@@ -44,10 +49,33 @@ export default function TrainCrossing() {
   const lightA = useRef<THREE.Mesh>(null)
   const lightB = useRef<THREE.Mesh>(null)
   const clock = useRef(0)
+  const armed = useRef(false)
   const belled = useRef(false)
   const horned = useRef(false)
 
   useBeforePhysicsStep((world) => {
+    // Dormant until the truck approaches: gates up, cars parked, lights off.
+    if (!armed.current) {
+      const truck = gameRefs.truck
+      for (let g = 0; g < 2; g++) {
+        const gate = gates.current[g]
+        if (gate) {
+          const side = g === 0 ? -1 : 1
+          _gateQuat.setFromEuler(_gateEuler.set(side * (Math.PI / 2), 0, 0))
+          gate.setNextKinematicRotation(_gateQuat)
+        }
+      }
+      for (let i = 0; i < TC.carCount; i++) {
+        cars.current[i]?.setNextKinematicTranslation({
+          x: TC.x,
+          y: TC.groundY + 0.95,
+          z: -60 - i * TC.carLength,
+        })
+      }
+      if (!truck || TC.x - truck.translation().x > ARM_DISTANCE) return
+      armed.current = true
+      clock.current = 0
+    }
     clock.current += world.timestep
     const t = clock.current % TC.period
     const playing = useGameStore.getState().phase === 'playing'
@@ -94,7 +122,7 @@ export default function TrainCrossing() {
   // Alternate-flashing crossing lights during warn + pass
   useFrame(() => {
     const t = clock.current % TC.period
-    const active = t < TC.warnTime + PASS_DURATION
+    const active = armed.current && t < TC.warnTime + PASS_DURATION
     const phase = Math.sin(clock.current * 12) > 0
     const a = lightA.current?.material as THREE.MeshStandardMaterial | undefined
     const b = lightB.current?.material as THREE.MeshStandardMaterial | undefined

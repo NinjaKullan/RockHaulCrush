@@ -1,26 +1,49 @@
 import { useFrame } from '@react-three/fiber'
 import { RigidBody, useBeforePhysicsStep, type RapierRigidBody } from '@react-three/rapier'
-import { useRef } from 'react'
+import { useEffect, useRef } from 'react'
 import * as THREE from 'three'
 import { fallingRockTuning as F } from '../../config/gameTuning'
 import { course } from '../levels/quarryRun'
+import { gameRefs } from '../refs'
+
+/** Arm each spawn when the truck is this close — a full-speed driver meets
+ *  the drop right at the ring instead of blowing past an idle cycle. */
+const ARM_DISTANCE = 40
 
 /**
- * Telegraphed falling boulders over the second washboard. Cycle per spawn:
- * warn (pulsing amber marker on the road) → drop → rest → vanish → repeat.
+ * Telegraphed falling boulders. Each spawn is armed by the truck's approach:
+ * warn (pulsing amber marker) → drop → rest → vanish, then repeating cycle.
  * The boulder body is disabled outside its fall/rest window.
  */
 export default function FallingRocks() {
   const bodies = useRef<(RapierRigidBody | null)[]>([])
   const markers = useRef<(THREE.Mesh | null)[]>([])
-  const clocks = useRef(course.fallingRockSpawns.map((s) => -s.phase))
+  const clocks = useRef(course.fallingRockSpawns.map(() => -1))
+  const armed = useRef(course.fallingRockSpawns.map(() => false))
   const dropped = useRef(course.fallingRockSpawns.map(() => false))
+
+  // Boulders start dormant (their bodies would otherwise free-fall on mount).
+  useEffect(() => {
+    const id = setTimeout(() => {
+      for (const b of bodies.current) b?.setEnabled(false)
+    }, 0)
+    return () => clearTimeout(id)
+  }, [])
 
   useBeforePhysicsStep((world) => {
     const dt = world.timestep
+    const truck = gameRefs.truck
     for (let i = 0; i < course.fallingRockSpawns.length; i++) {
       const body = bodies.current[i]
       if (!body) continue
+      if (!armed.current[i]) {
+        if (!truck) continue
+        if (course.fallingRockSpawns[i].x - truck.translation().x < ARM_DISTANCE) {
+          armed.current[i] = true
+          clocks.current[i] = 0
+        }
+        continue
+      }
       clocks.current[i] += dt
       const t = clocks.current[i] % F.period
       if (clocks.current[i] < 0) continue

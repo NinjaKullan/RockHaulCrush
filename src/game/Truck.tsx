@@ -51,6 +51,7 @@ export default function Truck() {
   const visualRoll = useRef<THREE.Group>(null)
   const skidCooldown = useRef(0)
   const dustAcc = useRef(0)
+  const prevVAlong = useRef(0)
 
   useEffect(() => {
     gameRefs.truck = bodyRef.current
@@ -225,6 +226,9 @@ export default function Truck() {
     }
 
     telemetry.speed = vAlong
+    const rawAccel = (vAlong - prevVAlong.current) / dt
+    prevVAlong.current = vAlong
+    telemetry.accel += (THREE.MathUtils.clamp(rawAccel, -30, 30) - telemetry.accel) * 0.12
     telemetry.grounded = grounded
     telemetry.inMud = inMud
     telemetry.inPuddle = inPuddle
