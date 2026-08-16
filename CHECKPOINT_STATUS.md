@@ -1,5 +1,24 @@
 # Checkpoint Status
 
+## Post-handoff content update (from playtest feedback)
+
+- **Waterlogged puddles with hydroplaning**: mud/water patches are now organic
+  overlapping blob shapes (no more rectangular carpet). Puddles have a
+  reflective water surface over a muddy rim; hitting one fast triggers a
+  splash burst + splash sound, and while on water the truck hydroplanes —
+  weak throttle, 25% braking, 30% steering authority, and lateral drift
+  carries. Standard has one before the delivery pad; Long Haul has two.
+  Mud (slow grind) remains a distinct surface.
+- **Ore-train crossing** at x≈112 (both tracks): rails + sleepers cross the
+  road, crossbuck signals with alternating red lights, a bell during the
+  2.6 s warning, a horn as the locomotive and four loaded ore cars sweep
+  across. Stop short or clear the rails.
+- **Blast is approach-armed**: the first detonation now waits for the truck
+  (~30 m out) so every driver sees it, then the cycle continues normally.
+- **Career tally** on the title screen (lifetime rocks hauled + runs,
+  persisted) — the "number goes up" retention hook.
+- Crane cable no longer smears across the camera when driving under it.
+
 ## Current checkpoint: 5 — Final QA (awaiting final approval)
 
 Date: 2026-08-15

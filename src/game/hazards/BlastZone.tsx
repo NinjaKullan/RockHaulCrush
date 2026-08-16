@@ -26,9 +26,19 @@ export default function BlastZone() {
   const beacon = useRef<THREE.Mesh>(null)
   const clock = useRef(0)
   const state = useRef<'idle' | 'warned' | 'blasted'>('idle')
+  /** The first blast is armed by the truck's approach so nobody misses it. */
+  const armed = useRef(false)
   const launchRng = useMemo(() => mulberry32(4242), [])
 
   useBeforePhysicsStep((world) => {
+    // Hold the cycle until the truck approaches; then the warn phase starts
+    // exactly as the player closes in — every driver sees the first blast.
+    if (!armed.current) {
+      const truck = gameRefs.truck
+      if (!truck || truck.translation().x < BZ.x - 30) return
+      armed.current = true
+      clock.current = 0
+    }
     clock.current += world.timestep
     const t = clock.current % BZ.period
     const playing = useGameStore.getState().phase === 'playing'
@@ -109,12 +119,12 @@ export default function BlastZone() {
     }
   })
 
-  // Beacon flash during the warn phase
+  // Beacon flash during the warn phase (dark until the zone is armed)
   useFrame(() => {
     const b = beacon.current
     if (!b) return
     const t = clock.current % BZ.period
-    const warning = t < BZ.warnTime
+    const warning = armed.current && t < BZ.warnTime
     const mat = b.material as THREE.MeshStandardMaterial
     mat.emissiveIntensity = warning ? 1.5 + 1.5 * Math.sin(clock.current * 22) : 0.15
   })

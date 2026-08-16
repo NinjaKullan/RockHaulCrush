@@ -1,5 +1,7 @@
 import { CuboidCollider, RigidBody } from '@react-three/rapier'
-import { course, groundTopAt, type GroundBox } from './levels/quarryRun'
+import { useMemo } from 'react'
+import { course, groundTopAt, trainCrossing, type GroundBox } from './levels/quarryRun'
+import { mulberry32, rangeFrom } from './rng'
 
 function GroundPiece({ box }: { box: GroundBox }) {
   return (
@@ -15,13 +17,81 @@ function GroundPiece({ box }: { box: GroundBox }) {
   )
 }
 
-/** Wet mud patch (visual; the slowdown is applied in truck physics). */
-function MudPatch({ x0, x1, groundY }: { x0: number; x1: number; groundY: number }) {
+/**
+ * Organic surface patch built from overlapping flattened discs — no more
+ * rectangular carpets. Mud is matte browns; puddles are a muddy rim with a
+ * reflective water surface on top.
+ */
+function SurfacePatch({
+  x0,
+  x1,
+  groundY,
+  kind,
+}: {
+  x0: number
+  x1: number
+  groundY: number
+  kind: 'mud' | 'puddle'
+}) {
+  const blobs = useMemo(() => {
+    const rng = mulberry32(Math.round(x0 * 97))
+    const n = 6
+    return Array.from({ length: n }, (_, i) => ({
+      x: x0 + 1 + ((x1 - x0 - 2) * i) / (n - 1) + rangeFrom(rng, -0.5, 0.5),
+      z: rangeFrom(rng, -2.2, 2.2),
+      r: rangeFrom(rng, 1.6, 2.8),
+      squash: rangeFrom(rng, 0.6, 0.85),
+    }))
+  }, [x0, x1])
+
+  const mudColors = ['#5d4530', '#4f3a26', '#6d5138']
   return (
-    <mesh position={[(x0 + x1) / 2, groundY + 0.04, 0]} receiveShadow>
-      <boxGeometry args={[x1 - x0, 0.08, 7]} />
-      <meshStandardMaterial color="#6d5138" roughness={0.55} metalness={0.2} />
-    </mesh>
+    <group>
+      {blobs.map((b, i) => (
+        <group key={i} position={[b.x, groundY, b.z]} scale={[1, 1, b.squash]}>
+          {/* muddy rim */}
+          <mesh position={[0, 0.03, 0]} receiveShadow>
+            <cylinderGeometry args={[b.r, b.r, 0.06, 14]} />
+            <meshStandardMaterial color={mudColors[i % 3]} roughness={0.6} metalness={0.1} />
+          </mesh>
+          {kind === 'puddle' && (
+            <mesh position={[0, 0.075, 0]}>
+              <cylinderGeometry args={[b.r * 0.82, b.r * 0.82, 0.03, 14]} />
+              <meshStandardMaterial
+                color="#6f9fb5"
+                roughness={0.08}
+                metalness={0.85}
+                emissive="#2a4a5a"
+                emissiveIntensity={0.25}
+              />
+            </mesh>
+          )}
+        </group>
+      ))}
+    </group>
+  )
+}
+
+/** Rail track crossing the road at the train hazard (visual only). */
+function RailTracks() {
+  const { x, groundY } = trainCrossing
+  return (
+    <group position={[x, groundY, 0]}>
+      {/* Sleepers */}
+      {Array.from({ length: 16 }, (_, i) => (
+        <mesh key={i} position={[0, 0.04, -9 + i * 1.2]} receiveShadow>
+          <boxGeometry args={[2.1, 0.08, 0.5]} />
+          <meshStandardMaterial color="#4a3826" />
+        </mesh>
+      ))}
+      {/* Rails run across the road (along z) */}
+      {[-0.7, 0.7].map((dx) => (
+        <mesh key={dx} position={[dx, 0.1, 0]} receiveShadow castShadow>
+          <boxGeometry args={[0.14, 0.1, 19.5]} />
+          <meshStandardMaterial color="#6b6560" metalness={0.7} roughness={0.35} />
+        </mesh>
+      ))}
+    </group>
   )
 }
 
@@ -164,8 +234,12 @@ export default function Terrain() {
         <CheckpointFlag key={cp.x} x={cp.x} y={cp.y} />
       ))}
       {course.mudRegions.map((m, i) => (
-        <MudPatch key={i} {...m} />
+        <SurfacePatch key={`m${i}`} {...m} kind="mud" />
       ))}
+      {course.puddleRegions.map((p, i) => (
+        <SurfacePatch key={`p${i}`} {...p} kind="puddle" />
+      ))}
+      <RailTracks />
       {course.signs.map((s, i) => (
         <SignPost key={i} {...s} />
       ))}

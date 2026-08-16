@@ -15,6 +15,7 @@ import Barriers from './game/hazards/Barriers'
 import BlastZone from './game/hazards/BlastZone'
 import Crane from './game/hazards/Crane'
 import FallingRocks from './game/hazards/FallingRocks'
+import TrainCrossing from './game/hazards/TrainCrossing'
 import Particles from './game/Particles'
 import { useGameStore } from './game/store'
 import DebugOverlay from './ui/DebugOverlay'
@@ -69,6 +70,7 @@ export default function App() {
             <FallingRocks />
             <Crane />
             <BlastZone />
+            <TrainCrossing />
           </Physics>
           <Particles />
         </Suspense>

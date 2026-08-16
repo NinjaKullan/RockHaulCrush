@@ -52,6 +52,9 @@ interface GameStore {
   result: RunResult | null
   bestStars: number
   bestDelivered: number
+  /** Lifetime totals — the "number goes up" hook. */
+  careerRocks: number
+  careerRuns: number
   debugVisible: boolean
   soundOn: boolean
   reducedMotion: boolean
@@ -76,6 +79,8 @@ interface GameStore {
 
 const BEST_STARS_KEY = 'rhr-best-stars'
 const BEST_DELIVERED_KEY = 'rhr-best-delivered'
+const CAREER_ROCKS_KEY = 'rhr-career-rocks'
+const CAREER_RUNS_KEY = 'rhr-career-runs'
 
 function loadBest(key: string): number {
   try {
@@ -118,6 +123,8 @@ export const useGameStore = create<GameStore>((set, get) => ({
   ...freshRun(),
   bestStars: loadBest(BEST_STARS_KEY),
   bestDelivered: loadBest(BEST_DELIVERED_KEY),
+  careerRocks: loadBest(CAREER_ROCKS_KEY),
+  careerRuns: loadBest(CAREER_RUNS_KEY),
   debugVisible: false,
   soundOn: isSoundEnabled(),
   reducedMotion: loadReducedMotion(),
@@ -167,11 +174,14 @@ export const useGameStore = create<GameStore>((set, get) => ({
     if (s.phase !== 'playing') return
     const timeLeft = Math.max(0, s.timeLeft - dt)
     if (timeLeft <= 0) {
+      const careerRuns = s.careerRuns + 1
+      saveBest(CAREER_RUNS_KEY, careerRuns)
       set({
         timeLeft: 0,
         phase: 'failed',
         magnetActive: false,
         result: { delivered: 0, stars: 0, timeLeft: 0 },
+        careerRuns,
       })
     } else {
       set({ timeLeft })
@@ -207,12 +217,18 @@ export const useGameStore = create<GameStore>((set, get) => ({
     const bestDelivered = stars > 0 ? Math.max(s.bestDelivered, delivered) : s.bestDelivered
     if (bestStars !== s.bestStars) saveBest(BEST_STARS_KEY, bestStars)
     if (bestDelivered !== s.bestDelivered) saveBest(BEST_DELIVERED_KEY, bestDelivered)
+    const careerRocks = s.careerRocks + delivered
+    const careerRuns = s.careerRuns + 1
+    saveBest(CAREER_ROCKS_KEY, careerRocks)
+    saveBest(CAREER_RUNS_KEY, careerRuns)
     set({
       phase: 'finished',
       magnetActive: false,
       result: { delivered, stars, timeLeft: s.timeLeft },
       bestStars,
       bestDelivered,
+      careerRocks,
+      careerRuns,
     })
   },
 

@@ -198,6 +198,20 @@ export const sfx = {
     noiseBurst({ duration: 0.7, volume: 0.4, filterFrom: 300, filterTo: 45 })
     tone(60, 0.6, 0.3, 'sine')
   },
+  /** Big water splash on puddle entry. */
+  splash(): void {
+    noiseBurst({ duration: 0.4, volume: 0.28, filterFrom: 1600, filterTo: 350, type: 'bandpass' })
+    noiseBurst({ duration: 0.25, volume: 0.12, filterFrom: 3200, filterTo: 900, type: 'highpass' })
+  },
+  /** Level-crossing bell: repeated dings during the warning phase. */
+  trainBell(): void {
+    for (let i = 0; i < 4; i++) tone(1180, 0.1, 0.09, 'square', i * 0.32)
+  },
+  /** Two-tone horn as the train enters the crossing. */
+  trainHorn(): void {
+    tone(311, 0.7, 0.16, 'sawtooth')
+    tone(415, 0.7, 0.12, 'sawtooth')
+  },
   countdownBeep(final: boolean): void {
     tone(final ? 880 : 440, final ? 0.35 : 0.15, 0.12, 'square')
   },

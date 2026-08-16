@@ -20,12 +20,16 @@ function checkCourse(name: string, c: CourseData) {
       expect(c.deliveryZone.padStartX).toBeLessThan(c.deliveryZone.finishX)
     })
 
-    it('mud regions are well-formed, inside bounds, and clear of the pad', () => {
-      for (const m of c.mudRegions) {
+    it('mud and puddle regions are well-formed, inside bounds, and clear of the pad', () => {
+      for (const m of [...c.mudRegions, ...c.puddleRegions]) {
         expect(m.x1).toBeGreaterThan(m.x0)
         expect(m.x0).toBeGreaterThan(c.levelBounds.minX)
         expect(m.x1).toBeLessThanOrEqual(c.deliveryZone.padStartX)
       }
+    })
+
+    it('has at least one hydroplane puddle', () => {
+      expect(c.puddleRegions.length).toBeGreaterThan(0)
     })
 
     it('hazards and signs sit inside the course bounds', () => {

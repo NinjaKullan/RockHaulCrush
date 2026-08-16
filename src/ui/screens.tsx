@@ -87,7 +87,20 @@ export function TitleScreen() {
           {'☆'.repeat(3 - bestStars)} · {bestDelivered} rocks
         </div>
       )}
+      <CareerLine />
       <SettingsRow />
+    </div>
+  )
+}
+
+/** Lifetime tally — quietly does a lot of "one more run" work. */
+function CareerLine() {
+  const careerRocks = useGameStore((s) => s.careerRocks)
+  const careerRuns = useGameStore((s) => s.careerRuns)
+  if (careerRuns === 0) return null
+  return (
+    <div className="career-line">
+      Career: {careerRocks} rocks hauled · {careerRuns} run{careerRuns === 1 ? '' : 's'}
     </div>
   )
 }

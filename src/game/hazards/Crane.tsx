@@ -48,9 +48,13 @@ export default function Crane() {
   })
 
   // Cable + block visuals hang from the pivot and mirror the physics formula.
-  useFrame(() => {
+  // Hidden while the camera passes through the swing plane so the cable never
+  // smears across the screen.
+  useFrame(({ camera }) => {
     const g = pendulumVisual.current
-    if (g) g.rotation.x = swingAngle(clock.current)
+    if (!g) return
+    g.rotation.x = swingAngle(clock.current)
+    g.visible = Math.abs(camera.position.x - craneHazard.x) > 3
   })
 
   return (

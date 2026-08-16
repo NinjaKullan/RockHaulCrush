@@ -87,6 +87,8 @@ export interface CourseData {
   checkpoints: { x: number; y: number }[]
   deliveryZone: { padStartX: number; finishX: number; padEndX: number }
   mudRegions: { x0: number; x1: number; groundY: number }[]
+  /** Waterlogged puddles: hydroplaning — slick steering/braking, big splashes. */
+  puddleRegions: { x0: number; x1: number; groundY: number }[]
   fallingRockSpawns: { x: number; z: number; groundY: number; phase: number }[]
   barrierPositions: { x: number; y: number; z: number }[]
   signs: { x: number; groundY: number; kind: 'chevron' | 'warn' }[]
@@ -178,6 +180,7 @@ function buildCourse(long: boolean): CourseData {
   const signs: CourseData['signs'] = [
     { x: 28.5, groundY: 0, kind: 'warn' },
     { x: 78.5, groundY: 0.6, kind: 'chevron' },
+    { x: 108, groundY: 0, kind: 'warn' }, // rail crossing
     { x: 121, groundY: 0, kind: 'warn' },
     { x: 146, groundY: 0.6, kind: 'warn' },
     { x: 210.5, groundY: 0.8, kind: 'chevron' },
@@ -185,8 +188,8 @@ function buildCourse(long: boolean): CourseData {
   ]
 
   if (!long) {
-    // Act 2 finale: mud grind guarding the delivery pad.
-    mudRegions.push({ x0: 246, x1: 254, groundY: 0 })
+    // Act 2 finale: a waterlogged puddle guarding the delivery pad.
+    const puddleRegions = [{ x0: 246, x1: 254, groundY: 0 }]
     profile.push([274, 0])
     return {
       name: 'Standard Run',
@@ -203,6 +206,7 @@ function buildCourse(long: boolean): CourseData {
       checkpoints,
       deliveryZone: { padStartX: 258, finishX: 262, padEndX: 270 },
       mudRegions,
+      puddleRegions,
       fallingRockSpawns,
       barrierPositions,
       signs,
@@ -240,7 +244,12 @@ function buildCourse(long: boolean): CourseData {
     [414, 0],
   )
   checkpoints.push({ x: 253, y: 1.6 }, { x: 295, y: 4.7 }, { x: 376, y: 1.6 })
-  mudRegions.push({ x0: 318, x1: 326, groundY: 0.6 }, { x0: 384, x1: 392, groundY: 0 })
+  mudRegions.push({ x0: 318, x1: 326, groundY: 0.6 })
+  // Waterlogged puddles: end of Act 2 and the final approach.
+  const puddleRegions = [
+    { x0: 240, x1: 248, groundY: 0 },
+    { x0: 384, x1: 392, groundY: 0 },
+  ]
   fallingRockSpawns.push(
     { x: 276, z: -1.6, groundY: 1.0, phase: 1.5 },
     { x: 284, z: 1.6, groundY: 2.1, phase: 4.5 },
@@ -267,6 +276,7 @@ function buildCourse(long: boolean): CourseData {
     checkpoints,
     deliveryZone: { padStartX: 396, finishX: 400, padEndX: 408 },
     mudRegions,
+    puddleRegions,
     fallingRockSpawns,
     barrierPositions,
     signs,
@@ -314,6 +324,24 @@ export const barrelHazard = {
 export const craneHazard = {
   x: 242,
   groundY: 0,
+} as const
+
+/**
+ * Ore-train crossing on the landing flat after the first jump: lights flash
+ * and a bell rings, then a train sweeps across the road. Stop short or beat it.
+ */
+export const trainCrossing = {
+  x: 112,
+  groundY: 0,
+  /** Full cycle seconds: warn → pass → idle. */
+  period: 15,
+  warnTime: 2.6,
+  /** Train speed along z, m/s. */
+  passSpeed: 13,
+  carCount: 5,
+  carLength: 3.4,
+  /** Train enters at -startZ and exits at +startZ. */
+  startZ: 42,
 } as const
 
 /**

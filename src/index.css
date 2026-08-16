@@ -87,6 +87,12 @@ body,
   margin-top: 6px;
 }
 
+.career-line {
+  font-size: 14px;
+  color: #d8cfc2;
+  opacity: 0.85;
+}
+
 .track-row {
   display: flex;
   gap: 14px;

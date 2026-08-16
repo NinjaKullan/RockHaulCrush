@@ -129,16 +129,30 @@ export default function Truck() {
         break
       }
     }
+    // Waterlogged puddles: hydroplaning — wheels barely bite. Weak throttle,
+    // much weaker braking and steering, and almost no natural slowdown.
+    let inPuddle = false
+    for (const p of course.puddleRegions) {
+      if (t.x >= p.x0 && t.x <= p.x1) {
+        inPuddle = true
+        break
+      }
+    }
     if (grounded) {
       let force = 0
-      const accel = inMud ? T.accel * mudTuning.accelFactor : T.accel
+      const accel = inMud
+        ? T.accel * mudTuning.accelFactor
+        : inPuddle
+          ? T.accel * 0.5
+          : T.accel
+      const brake = inPuddle ? T.brakeDecel * 0.25 : T.brakeDecel
       if (controlsLive && input.throttle && vAlong < T.maxSpeed) force += mass * accel
       if (controlsLive && input.brake) {
-        if (vAlong > 0.5) force -= mass * T.brakeDecel
+        if (vAlong > 0.5) force -= mass * brake
         else if (vAlong > -T.maxReverseSpeed) force -= mass * T.reverseAccel
       }
       if (!(controlsLive && (input.throttle || input.brake)))
-        force -= vAlong * mass * T.rollingDrag
+        force -= vAlong * mass * T.rollingDrag * (inPuddle ? 0.1 : 1)
       if (inMud) force -= vAlong * mass * mudTuning.extraDrag
       if (force !== 0) {
         _imp.copy(_fwd).multiplyScalar(force * dt)
@@ -148,12 +162,14 @@ export default function Truck() {
 
     // --- Lateral steering (chase view: D = screen right = +z)
     const steer = (input.steerRight ? 1 : 0) - (input.steerLeft ? 1 : 0)
+    const slick = inPuddle && grounded
     if (controlsLive && steer !== 0 && Math.abs(lv.z) < T.maxLateralSpeed) {
-      const authority = grounded ? 1 : 0.4
+      const authority = (grounded ? 1 : 0.4) * (slick ? 0.3 : 1)
       body.applyImpulse({ x: 0, y: 0, z: steer * mass * T.lateralAccel * authority * dt }, true)
     }
     // Lateral damping + soft road-edge spring keep the dodge snappy and bounded.
-    let zForce = -lv.z * mass * T.lateralDamping
+    // On water the damping almost vanishes — existing drift carries (hydroplane).
+    let zForce = -lv.z * mass * T.lateralDamping * (slick ? 0.15 : 1)
     if (Math.abs(t.z) > T.roadHalfWidth) {
       zForce -= (t.z - Math.sign(t.z) * T.roadHalfWidth) * mass * 30
     }
@@ -190,9 +206,28 @@ export default function Truck() {
     }
     skidCooldown.current -= dt
 
+    // Puddle entry splash
+    if (inPuddle && !telemetry.inPuddle && Math.abs(vAlong) > 5 && controlsLive) {
+      sfx.splash()
+      emitParticles({
+        x: t.x + 0.6,
+        y: t.y - 0.6,
+        z: t.z,
+        count: 18,
+        color: 0xcfe8f0,
+        speed: 3.5,
+        spread: 1.4,
+        up: 4.5,
+        life: 0.9,
+        size: 0.18,
+        gravity: 8,
+      })
+    }
+
     telemetry.speed = vAlong
     telemetry.grounded = grounded
     telemetry.inMud = inMud
+    telemetry.inPuddle = inPuddle
     telemetry.upY = _up.y
     telemetry.truckX = t.x
     telemetry.truckY = t.y
@@ -218,7 +253,8 @@ export default function Truck() {
     }
     if (body && playing && telemetry.grounded && Math.abs(telemetry.speed) > 5) {
       dustAcc.current += delta
-      const interval = telemetry.inMud ? 0.05 : 0.09
+      const wet = telemetry.inPuddle
+      const interval = telemetry.inMud || wet ? 0.05 : 0.09
       if (dustAcc.current > interval) {
         dustAcc.current = 0
         const p = body.translation()
@@ -226,13 +262,13 @@ export default function Truck() {
           x: p.x - 1.6,
           y: p.y - 0.8,
           z: p.z,
-          count: telemetry.inMud ? 4 : 2,
-          color: telemetry.inMud ? 0x5d4530 : 0xdcb27a,
+          count: telemetry.inMud || wet ? 4 : 2,
+          color: wet ? 0xa8d8e8 : telemetry.inMud ? 0x5d4530 : 0xdcb27a,
           speed: 1.2,
-          spread: 0.8,
-          up: telemetry.inMud ? 3 : 1.6,
+          spread: 0.9,
+          up: wet ? 3.6 : telemetry.inMud ? 3 : 1.6,
           life: 0.6,
-          size: telemetry.inMud ? 0.18 : 0.13,
+          size: wet ? 0.15 : telemetry.inMud ? 0.18 : 0.13,
         })
       }
     }

@@ -20,6 +20,7 @@ interface HintContext {
   recoverable: number
   magnetCharges: number
   inMud: boolean
+  inPuddle: boolean
   flippedFor: number
 }
 
@@ -53,6 +54,18 @@ const HINTS: Hint[] = [
     priority: 1,
     text: '💦 Mud! Keep the throttle pinned and grind through.',
     test: (c) => c.inMud,
+  },
+  {
+    id: 'puddle',
+    priority: 1,
+    text: '💧 Waterlogged! You’ll hydroplane — line up your steering BEFORE the splash.',
+    test: (c) => c.inPuddle,
+  },
+  {
+    id: 'train',
+    priority: 1,
+    text: '🚂 Rail crossing! Bell and flashing lights mean a train is coming — stop short of the rails.',
+    test: (c) => c.x > 103 && c.x < 109,
   },
   {
     id: 'rockfall',
@@ -112,6 +125,7 @@ export default function HintSystem() {
         recoverable: s.cargo.recoverable,
         magnetCharges: s.magnetCharges,
         inMud: telemetry.inMud,
+        inPuddle: telemetry.inPuddle,
         flippedFor: flipStart.current === null ? 0 : (now - flipStart.current) / 1000,
       }
       const eligible = HINTS.filter((h) => !shown.current.has(h.id) && h.test(ctx)).sort(
