@@ -78,6 +78,12 @@ export default function HUD() {
       <div className="hud-speed">
         {speed}
         <span className="hud-speed-unit"> km/h</span>
+        <div className="hud-speed-bar">
+          <div
+            className={`hud-speed-fill${speed > 46 ? ' hud-speed-hot' : ''}`}
+            style={{ width: `${Math.min(100, (speed / 55) * 100)}%` }}
+          />
+        </div>
       </div>
       <div className="hud-hints">
         <b>W/↑</b> drive&ensp;<b>S/↓</b> brake&ensp;<b>A/←</b>·<b>D/→</b> steer&ensp;

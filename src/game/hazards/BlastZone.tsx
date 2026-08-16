@@ -28,6 +28,7 @@ export default function BlastZone() {
   const state = useRef<'idle' | 'warned' | 'blasted'>('idle')
   /** The first blast is armed by the truck's approach so nobody misses it. */
   const armed = useRef(false)
+  const joltCooldown = useRef(0)
   const launchRng = useMemo(() => mulberry32(4242), [])
 
   useBeforePhysicsStep((world) => {
@@ -110,11 +111,47 @@ export default function BlastZone() {
 
     // Rubble persists until the next detonation recycles it. Only chunks the
     // player has left well behind are retired early (they'd never be seen).
+    // Fast-flying rubble that reaches the truck delivers a real hit: a hard
+    // jolt that rocks the chassis and spills cargo.
     const truck = gameRefs.truck
     if (truck) {
-      const tx = truck.translation().x
+      const tt = truck.translation()
+      joltCooldown.current -= world.timestep
       for (const body of bodies.current) {
-        if (body?.isEnabled() && tx - body.translation().x > 30) body.setEnabled(false)
+        if (!body?.isEnabled()) continue
+        const p = body.translation()
+        if (tt.x - p.x > 30) {
+          body.setEnabled(false)
+          continue
+        }
+        if (joltCooldown.current > 0) continue
+        const v = body.linvel()
+        const speedSq = v.x * v.x + v.y * v.y + v.z * v.z
+        const dx = p.x - tt.x
+        const dy = p.y - tt.y
+        const dz = p.z - tt.z
+        if (speedSq > 20 && dx * dx + dy * dy + dz * dz < 7) {
+          joltCooldown.current = 0.6
+          const m = truck.mass()
+          truck.applyImpulse(
+            { x: 0.8 * m, y: 2.0 * m, z: Math.sign(v.z || 1) * 2.6 * m },
+            true,
+          )
+          truck.applyTorqueImpulse({ x: 0, y: 0, z: 1.6 * m }, true)
+          if (useGameStore.getState().phase === 'playing') sfx.impact(1)
+          emitParticles({
+            x: tt.x,
+            y: tt.y + 0.8,
+            z: tt.z,
+            count: 10,
+            color: 0x9a8265,
+            speed: 3,
+            spread: 1.2,
+            up: 3,
+            life: 0.7,
+            size: 0.16,
+          })
+        }
       }
     }
   })
@@ -140,7 +177,7 @@ export default function BlastZone() {
           }}
           colliders="hull"
           position={[BZ.x, BZ.groundY + 6, BZ.faceZ]}
-          density={1.2}
+          density={2.2}
           friction={0.9}
           restitution={0.15}
           ccd

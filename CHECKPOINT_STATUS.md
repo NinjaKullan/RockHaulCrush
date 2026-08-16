@@ -18,6 +18,18 @@
 - **Career tally** on the title screen (lifetime rocks hauled + runs,
   persisted) — the "number goes up" retention hook.
 - Crane cable no longer smears across the camera when driving under it.
+- **Blast has a price**: heavy rubble that strikes the truck delivers a hard
+  jolt (shove + pitch kick + impact sound) that spills cargo — getting caught
+  in a detonation now costs rocks.
+- **Crossing gates**: striped arms lower 0.8 s after the bell and seal the
+  road while the train passes, rising after it clears. Beat the gate while
+  it drops, or wait it out. Designed for held-throttle players — the gate is
+  physical, not advisory.
+- **Speed bar** under the km/h readout (green→amber, red near top speed) so
+  speed registers peripherally without reading numbers.
+- **Standard Run extended ~50 m** (now ~340 m, 2:00): extra washboard, a
+  gentle crest, and a relocated hydroplane puddle before the delivery pad;
+  extra checkpoint at the crest.
 
 ## Current checkpoint: 5 — Final QA (awaiting final approval)
 

@@ -158,6 +158,26 @@ body,
   opacity: 0.8;
 }
 
+.hud-speed-bar {
+  width: 150px;
+  height: 8px;
+  margin-top: 4px;
+  border-radius: 4px;
+  background: rgba(38, 30, 20, 0.75);
+  border: 1px solid #5c4b32;
+  overflow: hidden;
+}
+
+.hud-speed-fill {
+  height: 100%;
+  background: linear-gradient(90deg, #7ec850, #ffd25e);
+  transition: width 0.1s linear;
+}
+
+.hud-speed-hot {
+  background: linear-gradient(90deg, #ffd25e, #ff7a5c);
+}
+
 .hud-hints {
   position: absolute;
   bottom: 14px;

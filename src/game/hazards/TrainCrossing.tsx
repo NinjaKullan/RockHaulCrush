@@ -19,9 +19,28 @@ import { useGameStore } from '../store'
  */
 
 const PASS_DURATION = (2 * TC.startZ + TC.carCount * TC.carLength) / TC.passSpeed
+const GATE_ARM_LENGTH = 4.2
+const GATE_PIVOT_Y = 1.35
+
+const _gateQuat = new THREE.Quaternion()
+const _gateEuler = new THREE.Euler()
+
+/** Gate progress at cycle time t: 0 = up, 1 = down across the road. */
+function gateProgress(t: number): number {
+  const downStart = TC.gateDelay
+  const downAt = downStart + TC.gateLowerTime
+  const raiseStart = TC.warnTime + PASS_DURATION + 0.5
+  const raiseEnd = raiseStart + TC.gateLowerTime
+  if (t < downStart) return 0
+  if (t < downAt) return (t - downStart) / TC.gateLowerTime
+  if (t < raiseStart) return 1
+  if (t < raiseEnd) return 1 - (t - raiseStart) / TC.gateLowerTime
+  return 0
+}
 
 export default function TrainCrossing() {
   const cars = useRef<(RapierRigidBody | null)[]>([])
+  const gates = useRef<(RapierRigidBody | null)[]>([])
   const lightA = useRef<THREE.Mesh>(null)
   const lightB = useRef<THREE.Mesh>(null)
   const clock = useRef(0)
@@ -32,6 +51,16 @@ export default function TrainCrossing() {
     clock.current += world.timestep
     const t = clock.current % TC.period
     const playing = useGameStore.getState().phase === 'playing'
+
+    // Gate arms: beat them while they're lowering, or wait out the train.
+    const a = gateProgress(t)
+    for (let g = 0; g < 2; g++) {
+      const gate = gates.current[g]
+      if (!gate) continue
+      const side = g === 0 ? -1 : 1 // -1: left post (arm sweeps toward +z)
+      _gateQuat.setFromEuler(_gateEuler.set(side * (1 - a) * (Math.PI / 2), 0, 0))
+      gate.setNextKinematicRotation(_gateQuat)
+    }
 
     if (t < TC.warnTime) {
       horned.current = false
@@ -140,6 +169,54 @@ export default function TrainCrossing() {
               </group>
             ))}
           </RigidBody>
+        )
+      })}
+
+      {/* Crossing gates: kinematic arms that seal the road while a train passes */}
+      {[0, 1].map((g) => {
+        const side = g === 0 ? -1 : 1
+        const armDir = -side // arm sweeps toward road center
+        return (
+          <group key={g}>
+            {/* Post */}
+            <mesh
+              castShadow
+              position={[TC.x - TC.gateOffset, TC.groundY + GATE_PIVOT_Y / 2, side * 4.3]}
+            >
+              <boxGeometry args={[0.18, GATE_PIVOT_Y, 0.18]} />
+              <meshStandardMaterial color="#8c8272" />
+            </mesh>
+            {/* Kinematic arm pivoting at the post top */}
+            <RigidBody
+              ref={(el) => {
+                gates.current[g] = el
+              }}
+              type="kinematicPosition"
+              colliders={false}
+              position={[TC.x - TC.gateOffset, TC.groundY + GATE_PIVOT_Y, side * 4.3]}
+            >
+              <CuboidCollider
+                args={[0.08, 0.08, GATE_ARM_LENGTH / 2]}
+                position={[0, 0, (armDir * GATE_ARM_LENGTH) / 2]}
+                friction={0.5}
+              />
+              {Array.from({ length: 4 }, (_, seg) => (
+                <mesh
+                  key={seg}
+                  castShadow
+                  position={[0, 0, armDir * (0.55 + seg * (GATE_ARM_LENGTH - 0.6) / 4)]}
+                >
+                  <boxGeometry args={[0.12, 0.14, GATE_ARM_LENGTH / 4 - 0.06]} />
+                  <meshStandardMaterial color={seg % 2 === 0 ? '#e8552f' : '#fbe8c8'} />
+                </mesh>
+              ))}
+              {/* Counterweight */}
+              <mesh castShadow position={[0, -0.1, -armDir * 0.45]}>
+                <boxGeometry args={[0.2, 0.3, 0.4]} />
+                <meshStandardMaterial color="#3a352f" />
+              </mesh>
+            </RigidBody>
+          </group>
         )
       })}
 

@@ -68,7 +68,7 @@ checkCourse('long', courses.long)
 
 describe('course variants', () => {
   it('long course is meaningfully longer with more time and checkpoints', () => {
-    expect(courses.long.levelBounds.maxX).toBeGreaterThan(courses.standard.levelBounds.maxX + 100)
+    expect(courses.long.levelBounds.maxX).toBeGreaterThan(courses.standard.levelBounds.maxX + 80)
     expect(courses.long.timeLimit).toBeGreaterThan(courses.standard.timeLimit)
     expect(courses.long.checkpoints.length).toBeGreaterThan(courses.standard.checkpoints.length)
   })

@@ -121,7 +121,7 @@ function buildCourse(long: boolean): CourseData {
     slab(212, 219, 0.8, 2.7, RAMP),
     slab(217, 228.6, -1.6, -1.6, PIT),
     slab(228, 233.4, -1.6, 0.1, PIT),
-    slab(232.8, long ? 250 : 274, 0, 0, SAND),
+    slab(232.8, 250, 0, 0, SAND),
   ]
 
   const bumps: GroundBox[] = [
@@ -188,9 +188,19 @@ function buildCourse(long: boolean): CourseData {
   ]
 
   if (!long) {
-    // Act 2 finale: a waterlogged puddle guarding the delivery pad.
-    const puddleRegions = [{ x0: 246, x1: 254, groundY: 0 }]
-    profile.push([274, 0])
+    // Standard finale: one more rough stretch, a gentle crest, then a
+    // waterlogged puddle guarding the delivery pad.
+    groundBoxes.push(
+      slab(250, 264, 0, 0, ROUGH),
+      slab(264, 278, 0, 1.6, SAND_ALT),
+      slab(278, 290, 1.6, 0, SAND_ALT),
+      slab(290, 324, 0, 0, SAND),
+    )
+    bumps.push(...washboard([252, 254.5, 257, 259.5, 262], 0.02))
+    profile.push([250, 0], [264, 0], [278, 1.6], [290, 0], [324, 0])
+    checkpoints.push({ x: 294, y: 1.6 })
+    signs.push({ x: 293, groundY: 0, kind: 'warn' })
+    const puddleRegions = [{ x0: 296, x1: 304, groundY: 0 }]
     return {
       name: 'Standard Run',
       timeLimit: gameplayTuning.timeLimit,
@@ -198,13 +208,13 @@ function buildCourse(long: boolean): CourseData {
       bumps,
       boundaryWalls: [
         { c: [-19, 4], half: [0.5, 5], rot: 0, color: '', zHalf: Z_HALF, invisible: true },
-        { c: [275, 4], half: [0.5, 5], rot: 0, color: '', zHalf: Z_HALF, invisible: true },
+        { c: [325, 4], half: [0.5, 5], rot: 0, color: '', zHalf: Z_HALF, invisible: true },
       ],
-      zWalls: { x: 128, halfLength: 148, height: 12, z: 3.9, halfThickness: 0.3 },
-      levelBounds: { minX: -18, maxX: 274 },
+      zWalls: { x: 153, halfLength: 173, height: 12, z: 3.9, halfThickness: 0.3 },
+      levelBounds: { minX: -18, maxX: 324 },
       profile,
       checkpoints,
-      deliveryZone: { padStartX: 258, finishX: 262, padEndX: 270 },
+      deliveryZone: { padStartX: 308, finishX: 312, padEndX: 320 },
       mudRegions,
       puddleRegions,
       fallingRockSpawns,
@@ -337,11 +347,16 @@ export const trainCrossing = {
   period: 15,
   warnTime: 2.6,
   /** Train speed along z, m/s. */
-  passSpeed: 13,
+  passSpeed: 15,
   carCount: 5,
   carLength: 3.4,
   /** Train enters at -startZ and exits at +startZ. */
-  startZ: 42,
+  startZ: 36,
+  /** Gate arms sit this far before the rails; beat them or wait. */
+  gateOffset: 2.8,
+  /** Arm starts lowering this long after the bell, and takes lowerTime. */
+  gateDelay: 0.8,
+  gateLowerTime: 1.2,
 } as const
 
 /**

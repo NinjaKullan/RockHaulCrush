@@ -97,7 +97,7 @@ export const cameraTuning = {
 
 export const gameplayTuning = {
   /** Countdown timer for a run, seconds. */
-  timeLimit: 105,
+  timeLimit: 120,
   /** Time penalty applied on checkpoint recovery, seconds. */
   recoveryPenaltySeconds: 5,
   /** Rocks below this world-y are lost (out of the playable course). */
