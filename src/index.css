@@ -486,6 +486,76 @@ body,
   opacity: 0.85;
 }
 
+/* ---------- Small viewports ---------- */
+
+@media (max-width: 760px) {
+  .hud-brand {
+    display: none;
+  }
+
+  .hud-cargo {
+    font-size: 17px;
+    padding: 6px 12px;
+    top: 8px;
+    white-space: nowrap;
+  }
+
+  .hud-stars {
+    font-size: 13px;
+    margin-left: 8px;
+  }
+
+  .hud-timer {
+    top: 48px;
+    font-size: 16px;
+    padding: 3px 12px;
+  }
+
+  .hud-hints {
+    display: none;
+  }
+
+  .hud-magnet {
+    font-size: 12px;
+    padding: 6px 10px;
+    bottom: 10px;
+    left: 10px;
+  }
+
+  .hud-magnet-key {
+    display: none;
+  }
+
+  .hud-speed {
+    font-size: 22px;
+    right: 12px;
+    bottom: 10px;
+  }
+
+  .hud-speed-bar {
+    width: 90px;
+  }
+
+  .hud-restart {
+    font-size: 12px;
+    padding: 6px 10px;
+    top: 8px;
+    right: 10px;
+  }
+
+  .hint-toast {
+    font-size: 13px;
+    bottom: 44px;
+    padding: 8px 14px;
+  }
+
+  .track-row,
+  .settings-row {
+    flex-wrap: wrap;
+    justify-content: center;
+  }
+}
+
 /* ---------- Debug overlay ---------- */
 
 .debug-overlay {

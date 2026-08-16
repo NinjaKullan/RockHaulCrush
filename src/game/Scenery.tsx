@@ -39,7 +39,7 @@ export default function Scenery() {
     const clouds = []
     for (let x = course.levelBounds.minX - 20; x < course.levelBounds.maxX + 60; x += rangeFrom(rng, 20, 34)) {
       clouds.push({
-        pos: [x, rangeFrom(rng, 14, 22), rangeFrom(rng, -40, 40)] as [number, number, number],
+        pos: [x, rangeFrom(rng, 17, 25), rangeFrom(rng, -40, 40)] as [number, number, number],
         scale: rangeFrom(rng, 0.9, 2.0),
       })
     }
@@ -97,27 +97,27 @@ export default function Scenery() {
           <mesh>
             <sphereGeometry args={[2.2, 7, 5]} />
             <meshStandardMaterial
-              color="#fff6ea"
-              emissive="#a99f92"
-              emissiveIntensity={0.55}
+              color="#ffffff"
+              emissive="#cfc8bd"
+              emissiveIntensity={0.7}
               flatShading
             />
           </mesh>
           <mesh position={[2.1, -0.3, 0.2]}>
             <sphereGeometry args={[1.5, 7, 5]} />
             <meshStandardMaterial
-              color="#fff6ea"
-              emissive="#a99f92"
-              emissiveIntensity={0.55}
+              color="#ffffff"
+              emissive="#cfc8bd"
+              emissiveIntensity={0.7}
               flatShading
             />
           </mesh>
           <mesh position={[-2.2, -0.4, -0.1]}>
             <sphereGeometry args={[1.6, 7, 5]} />
             <meshStandardMaterial
-              color="#fdeeda"
-              emissive="#a99f92"
-              emissiveIntensity={0.55}
+              color="#faf5ec"
+              emissive="#cfc8bd"
+              emissiveIntensity={0.7}
               flatShading
             />
           </mesh>

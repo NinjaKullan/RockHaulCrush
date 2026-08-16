@@ -99,6 +99,8 @@ function saveBest(key: string, value: number): void {
   }
 }
 
+let lastRecoveryAt = 0
+
 const freshCargo = (): CargoCounts => ({
   inBed: cargoTuning.rockCount,
   recoverable: 0,
@@ -191,6 +193,10 @@ export const useGameStore = create<GameStore>((set, get) => ({
   requestRecovery: () => {
     const s = get()
     if (s.phase !== 'playing') return
+    // Debounce: an accidental double-tap should not cost two penalties.
+    const now = Date.now()
+    if (now - lastRecoveryAt < 1200) return
+    lastRecoveryAt = now
     set({
       recoverRequests: s.recoverRequests + 1,
       timeLeft: Math.max(0.1, s.timeLeft - gameplayTuning.recoveryPenaltySeconds),

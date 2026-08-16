@@ -131,13 +131,14 @@ export default function BlastZone() {
         const dy = p.y - tt.y
         const dz = p.z - tt.z
         if (speedSq > 20 && dx * dx + dy * dy + dz * dz < 7) {
-          joltCooldown.current = 0.6
+          // A painful tax (a few rocks), not a total cargo wipe.
+          joltCooldown.current = 1.5
           const m = truck.mass()
           truck.applyImpulse(
-            { x: 0.8 * m, y: 2.0 * m, z: Math.sign(v.z || 1) * 2.6 * m },
+            { x: 0.5 * m, y: 1.2 * m, z: Math.sign(v.z || 1) * 1.6 * m },
             true,
           )
-          truck.applyTorqueImpulse({ x: 0, y: 0, z: 1.6 * m }, true)
+          truck.applyTorqueImpulse({ x: 0, y: 0, z: 0.8 * m }, true)
           if (useGameStore.getState().phase === 'playing') sfx.impact(1)
           emitParticles({
             x: tt.x,
