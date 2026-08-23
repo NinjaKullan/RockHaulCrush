@@ -72,6 +72,22 @@ function SurfacePatch({
   )
 }
 
+/** Pothole crater (visual; the jolt is applied in truck physics). */
+function Pothole({ x, z, r, groundY }: { x: number; z: number; r: number; groundY: number }) {
+  return (
+    <group position={[x, groundY, z]}>
+      <mesh position={[0, 0.025, 0]}>
+        <cylinderGeometry args={[r + 0.25, r + 0.25, 0.05, 12]} />
+        <meshStandardMaterial color="#9a7443" roughness={0.9} />
+      </mesh>
+      <mesh position={[0, 0.045, 0]}>
+        <cylinderGeometry args={[r, r, 0.05, 12]} />
+        <meshStandardMaterial color="#3a2c1c" roughness={1} />
+      </mesh>
+    </group>
+  )
+}
+
 /** Rail track crossing the road at the train hazard (visual only). */
 function RailTracks() {
   const { x, groundY } = trainCrossing
@@ -242,6 +258,9 @@ export default function Terrain() {
       <RailTracks />
       {course.signs.map((s, i) => (
         <SignPost key={i} {...s} />
+      ))}
+      {course.potholes.map((p, i) => (
+        <Pothole key={`ph${i}`} {...p} />
       ))}
       <CurbPosts />
       <DeliveryZone />

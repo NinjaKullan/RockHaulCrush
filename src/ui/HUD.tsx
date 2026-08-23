@@ -3,6 +3,79 @@ import { magnetTuning, scoringTuning } from '../config/gameTuning'
 import { telemetry } from '../game/refs'
 import { useGameStore } from '../game/store'
 
+const DIAL_MAX = 60 // km/h at the end of the arc
+const DIAL_SWEEP = 240 // degrees
+const DIAL_START = -210 // needle angle at 0 km/h (degrees, CSS rotation)
+
+/**
+ * Analog speedometer: tick ring, redline zone, needle, digital km/h,
+ * and a center-zero G-meter bar underneath.
+ */
+function SpeedDial({ speed, accel }: { speed: number; accel: number }) {
+  const frac = Math.min(1, speed / DIAL_MAX)
+  const needleDeg = DIAL_START + frac * DIAL_SWEEP
+  const ticks = []
+  for (let v = 0; v <= DIAL_MAX; v += 10) {
+    const a = ((DIAL_START + (v / DIAL_MAX) * DIAL_SWEEP - 90) * Math.PI) / 180
+    const isRed = v > 45
+    ticks.push(
+      <g key={v}>
+        <line
+          x1={60 + Math.cos(a) * 44}
+          y1={60 + Math.sin(a) * 44}
+          x2={60 + Math.cos(a) * 52}
+          y2={60 + Math.sin(a) * 52}
+          stroke={isRed ? '#ff7a5c' : '#d8cfc2'}
+          strokeWidth={3}
+          strokeLinecap="round"
+        />
+        <text
+          x={60 + Math.cos(a) * 34}
+          y={60 + Math.sin(a) * 34 + 3.5}
+          textAnchor="middle"
+          fontSize={9}
+          fontWeight={700}
+          fill={isRed ? '#ff7a5c' : '#b8ab98'}
+        >
+          {v}
+        </text>
+      </g>,
+    )
+  }
+  return (
+    <div className="hud-dial">
+      <svg viewBox="0 0 120 120" className="hud-dial-svg">
+        <circle cx={60} cy={60} r={57} fill="rgba(30,24,16,0.85)" stroke="#6b5638" strokeWidth={3} />
+        {ticks}
+        <g style={{ transform: `rotate(${needleDeg}deg)`, transformOrigin: '60px 60px' }} className="hud-dial-needle">
+          <line x1={60} y1={60} x2={60} y2={14} stroke="#ffd25e" strokeWidth={4} strokeLinecap="round" />
+        </g>
+        <circle cx={60} cy={60} r={6} fill="#ffd25e" />
+        <text x={60} y={88} textAnchor="middle" fontSize={20} fontWeight={900} fill="#fdf3e3">
+          {speed}
+        </text>
+        <text x={60} y={102} textAnchor="middle" fontSize={8.5} fontWeight={600} fill="#b8ab98">
+          km/h
+        </text>
+      </svg>
+      <div className="hud-accel">
+        <span className="hud-accel-label">{(accel / 9.81).toFixed(1).replace('-0.0', '0.0')} g</span>
+        <div className="hud-accel-bar">
+          <div className="hud-accel-center" />
+          <div
+            className={`hud-accel-fill${accel < -0.5 ? ' hud-accel-brake' : ''}`}
+            style={
+              accel >= 0
+                ? { left: '50%', width: `${Math.min(50, (accel / 16) * 50)}%` }
+                : { right: '50%', width: `${Math.min(50, (-accel / 16) * 50)}%` }
+            }
+          />
+        </div>
+      </div>
+    </div>
+  )
+}
+
 /** In-game DOM overlay: cargo, timer, speed, magnet, and control hints. */
 export default function HUD() {
   const cargo = useGameStore((s) => s.cargo)
@@ -77,33 +150,7 @@ export default function HUD() {
         {magnetCharges === 0 && !magnetActive ? '—' : ''}
         <span className="hud-magnet-key"> [SPACE]</span>
       </div>
-      <div className="hud-speed">
-        {speed}
-        <span className="hud-speed-unit"> km/h</span>
-        <div className="hud-speed-bar">
-          <div
-            className={`hud-speed-fill${speed > 46 ? ' hud-speed-hot' : ''}`}
-            style={{ width: `${Math.min(100, (speed / 55) * 100)}%` }}
-          />
-        </div>
-        {/* Accelerometer: center-zero G meter — green pushes right, red braking left */}
-        <div className="hud-accel">
-          <span className="hud-accel-label">
-            {(accel / 9.81).toFixed(1).replace('-0.0', '0.0')} g
-          </span>
-          <div className="hud-accel-bar">
-            <div className="hud-accel-center" />
-            <div
-              className={`hud-accel-fill${accel < -0.5 ? ' hud-accel-brake' : ''}`}
-              style={
-                accel >= 0
-                  ? { left: '50%', width: `${Math.min(50, (accel / 16) * 50)}%` }
-                  : { right: '50%', width: `${Math.min(50, (-accel / 16) * 50)}%` }
-              }
-            />
-          </div>
-        </div>
-      </div>
+      <SpeedDial speed={speed} accel={accel} />
       <div className="hud-hints">
         <b>W/↑</b> drive&ensp;<b>S/↓</b> brake&ensp;<b>A/←</b>·<b>D/→</b> steer&ensp;
         <b>Space</b> magnet&ensp;<b>R</b> recover&ensp;<b>Esc</b> pause

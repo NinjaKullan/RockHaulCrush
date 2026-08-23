@@ -91,6 +91,8 @@ export interface CourseData {
   puddleRegions: { x0: number; x1: number; groundY: number }[]
   fallingRockSpawns: { x: number; z: number; groundY: number; phase: number }[]
   barrierPositions: { x: number; y: number; z: number }[]
+  /** Potholes: lane craters that jolt the truck and rattle cargo when hit fast. */
+  potholes: { x: number; z: number; r: number; groundY: number }[]
   signs: { x: number; groundY: number; kind: 'chevron' | 'warn' }[]
 }
 
@@ -177,6 +179,13 @@ function buildCourse(long: boolean): CourseData {
     { x: 138.5, y: 0.7, z: -0.1 },
   ]
 
+  /** Potholes on the pre-train landing flat — pure steering content. */
+  const potholes: CourseData['potholes'] = [
+    { x: 99, z: -1.4, r: 0.9, groundY: 0 },
+    { x: 103, z: 1.2, r: 0.8, groundY: 0 },
+    { x: 107, z: -0.4, r: 0.85, groundY: 0 },
+  ]
+
   const signs: CourseData['signs'] = [
     { x: 28.5, groundY: 0, kind: 'warn' },
     { x: 78.5, groundY: 0.6, kind: 'chevron' },
@@ -200,6 +209,19 @@ function buildCourse(long: boolean): CourseData {
     profile.push([250, 0], [264, 0], [278, 1.6], [290, 0], [324, 0])
     checkpoints.push({ x: 294, y: 1.6 })
     signs.push({ x: 293, groundY: 0, kind: 'warn' })
+    // Slalom finish: staggered barrier gates through the final rough + crest.
+    barrierPositions.push(
+      { x: 254.5, y: 0.7, z: -1.9 },
+      { x: 254.5, y: 0.7, z: -0.1 }, // gap right
+      { x: 262.5, y: 0.7, z: 1.9 },
+      { x: 262.5, y: 0.7, z: 0.1 }, // gap left
+      { x: 270.5, y: 1.4, z: -1.9 },
+      { x: 270.5, y: 1.4, z: -0.1 }, // gap right, on the climb
+    )
+    potholes.push(
+      { x: 283, z: 1.1, r: 0.9, groundY: 1.05 },
+      { x: 287, z: -1.2, r: 0.85, groundY: 0.4 },
+    )
     const puddleRegions = [{ x0: 296, x1: 304, groundY: 0 }]
     return {
       name: 'Standard Run',
@@ -219,6 +241,7 @@ function buildCourse(long: boolean): CourseData {
       puddleRegions,
       fallingRockSpawns,
       barrierPositions,
+      potholes,
       signs,
     }
   }
@@ -265,6 +288,19 @@ function buildCourse(long: boolean): CourseData {
     { x: 284, z: 1.6, groundY: 2.1, phase: 4.5 },
   )
   barrierPositions.push({ x: 336.5, y: 1.3, z: 1.9 }, { x: 336.5, y: 1.3, z: 0.1 })
+  // Act 3 slalom through the third washboard.
+  barrierPositions.push(
+    { x: 254.5, y: 0.7, z: -1.9 },
+    { x: 254.5, y: 0.7, z: -0.1 }, // gap right
+    { x: 261.5, y: 0.7, z: 1.9 },
+    { x: 261.5, y: 0.7, z: 0.1 }, // gap left
+    { x: 268, y: 0.7, z: -1.9 },
+    { x: 268, y: 0.7, z: -0.1 }, // gap right
+  )
+  potholes.push(
+    { x: 315, z: -1.1, r: 0.9, groundY: 0.6 },
+    { x: 329, z: 1.3, r: 0.85, groundY: 0.6 },
+  )
   signs.push(
     { x: 272, groundY: 0.2, kind: 'warn' },
     { x: 315.5, groundY: 0.6, kind: 'warn' },
@@ -289,6 +325,7 @@ function buildCourse(long: boolean): CourseData {
     puddleRegions,
     fallingRockSpawns,
     barrierPositions,
+    potholes,
     signs,
   }
 }

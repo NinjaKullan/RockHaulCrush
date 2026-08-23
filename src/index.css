@@ -141,41 +141,24 @@ body,
   }
 }
 
-.hud-speed {
+.hud-dial {
   position: absolute;
-  right: 22px;
-  bottom: 18px;
-  font-size: 34px;
-  font-weight: 900;
-  color: #fdf3e3;
-  text-shadow: 0 2px 6px rgba(30, 20, 8, 0.55);
-  font-variant-numeric: tabular-nums;
+  right: 18px;
+  bottom: 14px;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 4px;
 }
 
-.hud-speed-unit {
-  font-size: 16px;
-  font-weight: 600;
-  opacity: 0.8;
+.hud-dial-svg {
+  width: 148px;
+  height: 148px;
+  filter: drop-shadow(0 3px 8px rgba(20, 10, 2, 0.45));
 }
 
-.hud-speed-bar {
-  width: 150px;
-  height: 8px;
-  margin-top: 4px;
-  border-radius: 4px;
-  background: rgba(38, 30, 20, 0.75);
-  border: 1px solid #5c4b32;
-  overflow: hidden;
-}
-
-.hud-speed-fill {
-  height: 100%;
-  background: linear-gradient(90deg, #7ec850, #ffd25e);
-  transition: width 0.1s linear;
-}
-
-.hud-speed-hot {
-  background: linear-gradient(90deg, #ffd25e, #ff7a5c);
+.hud-dial-needle {
+  transition: transform 0.1s linear;
 }
 
 .hud-accel {
@@ -575,14 +558,14 @@ body,
     display: none;
   }
 
-  .hud-speed {
-    font-size: 22px;
-    right: 12px;
-    bottom: 10px;
+  .hud-dial {
+    right: 10px;
+    bottom: 8px;
   }
 
-  .hud-speed-bar {
-    width: 90px;
+  .hud-dial-svg {
+    width: 100px;
+    height: 100px;
   }
 
   .hud-restart {

@@ -52,6 +52,7 @@ export default function Truck() {
   const skidCooldown = useRef(0)
   const dustAcc = useRef(0)
   const prevVAlong = useRef(0)
+  const potholeCooldown = useRef(0)
 
   useEffect(() => {
     gameRefs.truck = bodyRef.current
@@ -206,6 +207,34 @@ export default function Truck() {
       skidCooldown.current = 0.35
     }
     skidCooldown.current -= dt
+
+    // Potholes: hitting a crater fast jolts the truck and rattles the bed.
+    potholeCooldown.current -= dt
+    if (grounded && Math.abs(vAlong) > 6 && potholeCooldown.current <= 0) {
+      for (const hole of course.potholes) {
+        const hx = t.x - hole.x
+        const hz = t.z - hole.z
+        if (hx * hx + hz * hz < (hole.r + 0.5) * (hole.r + 0.5)) {
+          potholeCooldown.current = 1.5
+          body.applyImpulse({ x: -0.6 * mass, y: 1.6 * mass, z: 0 }, true)
+          body.applyTorqueImpulse({ x: 0, y: 0, z: -0.7 * mass }, true)
+          if (controlsLive) sfx.impact(0.5)
+          emitParticles({
+            x: hole.x,
+            y: hole.groundY + 0.2,
+            z: hole.z,
+            count: 8,
+            color: 0xb08b58,
+            speed: 2.5,
+            spread: 1,
+            up: 2.5,
+            life: 0.6,
+            size: 0.14,
+          })
+          break
+        }
+      }
+    }
 
     // Puddle entry splash
     if (inPuddle && !telemetry.inPuddle && Math.abs(vAlong) > 5 && controlsLive) {

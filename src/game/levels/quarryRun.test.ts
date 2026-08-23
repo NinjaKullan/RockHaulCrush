@@ -33,13 +33,28 @@ function checkCourse(name: string, c: CourseData) {
     })
 
     it('hazards and signs sit inside the course bounds', () => {
-      for (const s of [...c.fallingRockSpawns, ...c.signs]) {
+      for (const s of [...c.fallingRockSpawns, ...c.signs, ...c.potholes]) {
         expect(s.x).toBeGreaterThan(c.levelBounds.minX)
         expect(s.x).toBeLessThan(c.levelBounds.maxX)
       }
       for (const b of c.barrierPositions) {
         expect(b.x).toBeGreaterThan(c.levelBounds.minX)
         expect(b.x).toBeLessThan(c.levelBounds.maxX)
+      }
+    })
+
+    it('every barrier gate row leaves a drivable gap', () => {
+      const byX = new Map<number, number[]>()
+      for (const b of c.barrierPositions) {
+        const list = byX.get(b.x) ?? []
+        list.push(b.z)
+        byX.set(b.x, list)
+      }
+      for (const [, zs] of byX) {
+        // Barriers half-width 0.8; road drivable ±2.9. Find an open lane.
+        const blocked = (z: number) => zs.some((bz) => Math.abs(bz - z) < 0.8 + 0.9)
+        const lanes = [-2.2, -1.1, 0, 1.1, 2.2]
+        expect(lanes.some((lane) => !blocked(lane))).toBe(true)
       }
     })
 

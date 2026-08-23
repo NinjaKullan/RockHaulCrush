@@ -129,16 +129,17 @@ export const mudTuning = {
 } as const
 
 export const barrelTuning = {
-  count: 2,
+  /** Gauntlet mode: several drums alive at once, weave between lanes. */
+  count: 4,
   /** Seconds between a single barrel's respawns (staggered ⇒ one every period/count). */
-  period: 7,
+  period: 9.2,
   /** Initial downhill speed, m/s (toward -x, into the oncoming truck). */
   launchSpeed: 2.5,
   radius: 0.42,
   density: 0.35,
   /** Reset when a barrel rolls past this x or exceeds its lifetime. */
-  minX: 24,
-  lifetime: 6,
+  minX: 9,
+  lifetime: 8.8,
 } as const
 
 export const fallingRockTuning = {
