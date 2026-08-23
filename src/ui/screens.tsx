@@ -44,14 +44,14 @@ export function TitleScreen() {
           onClick={() => selectTrack('standard')}
         >
           Standard Run
-          <span className="track-sub">~340 m · 2:00</span>
+          <span className="track-sub">~380 m · 2:10</span>
         </button>
         <button
           className={`track-button${trackKind === 'long' ? ' track-active' : ''}`}
           onClick={() => selectTrack('long')}
         >
           Long Haul
-          <span className="track-sub">~430 m · 2:50</span>
+          <span className="track-sub">~460 m · 3:05</span>
         </button>
       </div>
       <button

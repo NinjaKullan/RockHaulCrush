@@ -58,6 +58,12 @@ function checkCourse(name: string, c: CourseData) {
       }
     })
 
+    it('the traffic zone is inside the course and clear of the delivery pad', () => {
+      expect(c.trafficZone.x0).toBeGreaterThan(c.levelBounds.minX)
+      expect(c.trafficZone.x1).toBeLessThanOrEqual(c.deliveryZone.padStartX)
+      expect(c.trafficZone.x1).toBeGreaterThan(c.trafficZone.x0 + 20)
+    })
+
     it('z-walls span the whole course', () => {
       expect(c.zWalls.x - c.zWalls.halfLength).toBeLessThanOrEqual(c.levelBounds.minX)
       expect(c.zWalls.x + c.zWalls.halfLength).toBeGreaterThanOrEqual(c.levelBounds.maxX)

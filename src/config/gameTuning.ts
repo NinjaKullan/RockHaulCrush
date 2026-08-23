@@ -97,7 +97,7 @@ export const cameraTuning = {
 
 export const gameplayTuning = {
   /** Countdown timer for a run, seconds. */
-  timeLimit: 120,
+  timeLimit: 130,
   /** Time penalty applied on checkpoint recovery, seconds. */
   recoveryPenaltySeconds: 5,
   /** Rocks below this world-y are lost (out of the playable course). */
@@ -152,6 +152,20 @@ export const fallingRockTuning = {
   dropHeight: 12,
   radius: 0.55,
   density: 2,
+} as const
+
+export const haulerTuning = {
+  /** Oncoming empty hauler speed toward the player, m/s. */
+  speed: 8,
+  /** Seconds between haulers entering the traffic zone. */
+  spawnGap: 7,
+  lanes: [-2, 0, 2],
+  /** Zone arms when the player is this close to its start. */
+  armDistance: 40,
+  /** Haulers alive at once. */
+  count: 2,
+  /** Horn sounds when the player is within this range of an active hauler. */
+  hornRange: 48,
 } as const
 
 export const craneTuning = {

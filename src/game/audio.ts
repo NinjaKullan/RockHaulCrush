@@ -212,6 +212,13 @@ export const sfx = {
     tone(311, 0.7, 0.16, 'sawtooth')
     tone(415, 0.7, 0.12, 'sawtooth')
   },
+  /** Higher, shorter double-blast from an oncoming hauler. */
+  haulerHorn(): void {
+    tone(370, 0.28, 0.14, 'sawtooth')
+    tone(494, 0.28, 0.1, 'sawtooth')
+    tone(370, 0.32, 0.14, 'sawtooth', 0.4)
+    tone(494, 0.32, 0.1, 'sawtooth', 0.4)
+  },
   countdownBeep(final: boolean): void {
     tone(final ? 880 : 440, final ? 0.35 : 0.15, 0.12, 'square')
   },

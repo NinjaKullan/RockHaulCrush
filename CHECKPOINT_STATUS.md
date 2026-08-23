@@ -31,6 +31,14 @@
   gentle crest, and a relocated hydroplane puddle before the delivery pad;
   extra checkpoint at the crest.
 
+- **Oncoming empty haulers + course extension**: both tracks gain a dedicated
+  two-way haul road stretch with a dashed centerline (Standard ~380 m / 2:10,
+  Long ~460 m / 3:05, each with a new checkpoint). Red empty haulers enter at
+  the far end in a seeded lane and drive straight at the player — headlights
+  blazing, double-blast horn at ~48 m. Zone arms on approach. On Long Haul the
+  waterlogged stretch sits INSIDE the traffic zone: pick a lane before the
+  splash. Analog dial, gauntlet, slalom, and potholes from the same session.
+
 ## Current checkpoint: 5 — Final QA (awaiting final approval)
 
 Date: 2026-08-15

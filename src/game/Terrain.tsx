@@ -88,6 +88,23 @@ function Pothole({ x, z, r, groundY }: { x: number; z: number; r: number; ground
   )
 }
 
+/** Dashed centerline marking the two-way traffic stretch. */
+function TrafficCenterline() {
+  const { x0, x1, groundY } = course.trafficZone
+  const dashes = []
+  for (let x = x0; x < x1; x += 3.2) dashes.push(x)
+  return (
+    <group>
+      {dashes.map((x) => (
+        <mesh key={x} position={[x + 0.9, groundY + 0.03, 0]}>
+          <boxGeometry args={[1.8, 0.05, 0.2]} />
+          <meshStandardMaterial color="#f3e2c5" />
+        </mesh>
+      ))}
+    </group>
+  )
+}
+
 /** Rail track crossing the road at the train hazard (visual only). */
 function RailTracks() {
   const { x, groundY } = trainCrossing
@@ -263,6 +280,7 @@ export default function Terrain() {
         <Pothole key={`ph${i}`} {...p} />
       ))}
       <CurbPosts />
+      <TrafficCenterline />
       <DeliveryZone />
     </>
   )

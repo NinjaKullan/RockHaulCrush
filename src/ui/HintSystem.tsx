@@ -1,4 +1,5 @@
 import { useEffect, useRef, useState } from 'react'
+import { course } from '../game/levels/quarryRun'
 import { telemetry } from '../game/refs'
 import { useGameStore } from '../game/store'
 
@@ -22,6 +23,8 @@ interface HintContext {
   inMud: boolean
   inPuddle: boolean
   flippedFor: number
+  /** Distance to the traffic zone start (negative once inside/past). */
+  trafficDist: number
 }
 
 const HINTS: Hint[] = [
@@ -85,6 +88,12 @@ const HINTS: Hint[] = [
     text: '⚠ Swinging crane load — time your pass or hug the road edge.',
     test: (c) => c.x > 230 && c.x < 237,
   },
+  {
+    id: 'traffic',
+    priority: 1,
+    text: '🚚 Two-way traffic! Oncoming haulers hold their lane — read it early and keep clear.',
+    test: (c) => c.trafficDist < 42 && c.trafficDist > 0,
+  },
 ]
 
 const TOAST_SECONDS = 4.5
@@ -127,6 +136,7 @@ export default function HintSystem() {
         inMud: telemetry.inMud,
         inPuddle: telemetry.inPuddle,
         flippedFor: flipStart.current === null ? 0 : (now - flipStart.current) / 1000,
+        trafficDist: course.trafficZone.x0 - telemetry.truckX,
       }
       const eligible = HINTS.filter((h) => !shown.current.has(h.id) && h.test(ctx)).sort(
         (a, b) => b.priority - a.priority,

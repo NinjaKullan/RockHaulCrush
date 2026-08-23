@@ -93,6 +93,8 @@ export interface CourseData {
   barrierPositions: { x: number; y: number; z: number }[]
   /** Potholes: lane craters that jolt the truck and rattle cargo when hit fast. */
   potholes: { x: number; z: number; r: number; groundY: number }[]
+  /** Two-way haul road stretch where oncoming empty haulers run. */
+  trafficZone: { x0: number; x1: number; groundY: number }
   signs: { x: number; groundY: number; kind: 'chevron' | 'warn' }[]
 }
 
@@ -197,18 +199,18 @@ function buildCourse(long: boolean): CourseData {
   ]
 
   if (!long) {
-    // Standard finale: one more rough stretch, a gentle crest, then a
-    // waterlogged puddle guarding the delivery pad.
+    // Standard finale: rough slalom, a gentle crest, a two-way haul road with
+    // oncoming traffic, then a waterlogged puddle guarding the delivery pad.
     groundBoxes.push(
       slab(250, 264, 0, 0, ROUGH),
       slab(264, 278, 0, 1.6, SAND_ALT),
       slab(278, 290, 1.6, 0, SAND_ALT),
-      slab(290, 324, 0, 0, SAND),
+      slab(290, 360, 0, 0, SAND),
     )
     bumps.push(...washboard([252, 254.5, 257, 259.5, 262], 0.02))
-    profile.push([250, 0], [264, 0], [278, 1.6], [290, 0], [324, 0])
-    checkpoints.push({ x: 294, y: 1.6 })
-    signs.push({ x: 293, groundY: 0, kind: 'warn' })
+    profile.push([250, 0], [264, 0], [278, 1.6], [290, 0], [360, 0])
+    checkpoints.push({ x: 294, y: 1.6 }, { x: 332, y: 1.6 })
+    signs.push({ x: 291, groundY: 0, kind: 'warn' }, { x: 331, groundY: 0, kind: 'warn' })
     // Slalom finish: staggered barrier gates through the final rough + crest.
     barrierPositions.push(
       { x: 254.5, y: 0.7, z: -1.9 },
@@ -222,7 +224,7 @@ function buildCourse(long: boolean): CourseData {
       { x: 283, z: 1.1, r: 0.9, groundY: 1.05 },
       { x: 287, z: -1.2, r: 0.85, groundY: 0.4 },
     )
-    const puddleRegions = [{ x0: 296, x1: 304, groundY: 0 }]
+    const puddleRegions = [{ x0: 334, x1: 342, groundY: 0 }]
     return {
       name: 'Standard Run',
       timeLimit: gameplayTuning.timeLimit,
@@ -230,18 +232,19 @@ function buildCourse(long: boolean): CourseData {
       bumps,
       boundaryWalls: [
         { c: [-19, 4], half: [0.5, 5], rot: 0, color: '', zHalf: Z_HALF, invisible: true },
-        { c: [325, 4], half: [0.5, 5], rot: 0, color: '', zHalf: Z_HALF, invisible: true },
+        { c: [361, 4], half: [0.5, 5], rot: 0, color: '', zHalf: Z_HALF, invisible: true },
       ],
-      zWalls: { x: 153, halfLength: 173, height: 12, z: 4.6, halfThickness: 0.3 },
-      levelBounds: { minX: -18, maxX: 324 },
+      zWalls: { x: 171, halfLength: 191, height: 12, z: 4.6, halfThickness: 0.3 },
+      levelBounds: { minX: -18, maxX: 360 },
       profile,
       checkpoints,
-      deliveryZone: { padStartX: 308, finishX: 312, padEndX: 320 },
+      deliveryZone: { padStartX: 346, finishX: 350, padEndX: 358 },
       mudRegions,
       puddleRegions,
       fallingRockSpawns,
       barrierPositions,
       potholes,
+      trafficZone: { x0: 294, x1: 328, groundY: 0 },
       signs,
     }
   }
@@ -257,7 +260,7 @@ function buildCourse(long: boolean): CourseData {
     slab(352, 359, 0.6, 2.5, RAMP),
     slab(357, 368.6, -1.6, -1.6, PIT),
     slab(368, 373.4, -1.6, 0.1, PIT),
-    slab(372.8, 414, 0, 0, SAND),
+    slab(372.8, 450, 0, 0, SAND),
   )
   bumps.push(
     ...washboard([252.5, 255, 257.5, 260, 262.5, 265, 267.5], 0.02),
@@ -274,10 +277,15 @@ function buildCourse(long: boolean): CourseData {
     [359.01, -1.6],
     [368.6, -1.6],
     [373.4, 0.1],
-    [414, 0],
+    [450, 0],
   )
-  checkpoints.push({ x: 253, y: 1.6 }, { x: 295, y: 4.7 }, { x: 376, y: 1.6 })
-  mudRegions.push({ x0: 318, x1: 326, groundY: 0.6 })
+  checkpoints.push(
+    { x: 253, y: 1.6 },
+    { x: 295, y: 4.7 },
+    { x: 376, y: 1.6 },
+    { x: 418, y: 1.6 },
+  )
+  mudRegions.push({ x0: 318, x1: 326, groundY: 0.6 }, { x0: 416, x1: 424, groundY: 0 })
   // Waterlogged puddles: end of Act 2 and the final approach.
   const puddleRegions = [
     { x0: 240, x1: 248, groundY: 0 },
@@ -305,27 +313,32 @@ function buildCourse(long: boolean): CourseData {
     { x: 272, groundY: 0.2, kind: 'warn' },
     { x: 315.5, groundY: 0.6, kind: 'warn' },
     { x: 353.5, groundY: 0.6, kind: 'chevron' },
+    { x: 375, groundY: 0, kind: 'warn' }, // two-way traffic ahead
+    { x: 413, groundY: 0, kind: 'warn' }, // final mud
   )
 
   return {
     name: 'Long Haul',
-    timeLimit: 170,
+    timeLimit: 185,
     groundBoxes,
     bumps,
     boundaryWalls: [
       { c: [-19, 4], half: [0.5, 5], rot: 0, color: '', zHalf: Z_HALF, invisible: true },
-      { c: [415, 4], half: [0.5, 5], rot: 0, color: '', zHalf: Z_HALF, invisible: true },
+      { c: [445, 4], half: [0.5, 5], rot: 0, color: '', zHalf: Z_HALF, invisible: true },
     ],
-    zWalls: { x: 198, halfLength: 218, height: 12, z: 4.6, halfThickness: 0.3 },
-    levelBounds: { minX: -18, maxX: 414 },
+    zWalls: { x: 213, halfLength: 233, height: 12, z: 4.6, halfThickness: 0.3 },
+    levelBounds: { minX: -18, maxX: 444 },
     profile,
     checkpoints,
-    deliveryZone: { padStartX: 396, finishX: 400, padEndX: 408 },
+    deliveryZone: { padStartX: 428, finishX: 432, padEndX: 440 },
     mudRegions,
     puddleRegions,
     fallingRockSpawns,
     barrierPositions,
     potholes,
+    // The Long Haul finale: oncoming traffic WITH the waterlogged stretch
+    // inside it — pick your lane before you hit the water.
+    trafficZone: { x0: 378, x1: 408, groundY: 0 },
     signs,
   }
 }
