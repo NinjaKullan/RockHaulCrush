@@ -47,7 +47,7 @@ export default function Scenery() {
     const boulders = []
     for (let x = course.levelBounds.minX; x < course.levelBounds.maxX; x += rangeFrom(rng, 16, 30)) {
       boulders.push({
-        pos: [x, 0, (rng() > 0.5 ? 1 : -1) * rangeFrom(rng, 6, 10)] as [number, number, number],
+        pos: [x, 0, (rng() > 0.5 ? 1 : -1) * rangeFrom(rng, 5.6, 8.4)] as [number, number, number],
         s: rangeFrom(rng, 0.7, 1.8),
         rot: rng() * Math.PI,
       })
@@ -89,7 +89,7 @@ export default function Scenery() {
       {boulders.map((b, i) => (
         <mesh key={`f${i}`} position={b.pos} scale={b.s} rotation={[0.4, b.rot, 0.2]}>
           <dodecahedronGeometry args={[1, 0]} />
-          <meshStandardMaterial color="#8a5f36" flatShading />
+          <meshStandardMaterial color="#857f74" flatShading />
         </mesh>
       ))}
       {clouds.map((c, i) => (

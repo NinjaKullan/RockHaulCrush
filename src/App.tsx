@@ -7,6 +7,7 @@ import KeyboardManager from './game/KeyboardManager'
 import CameraRig from './game/CameraRig'
 import GameDirector from './game/GameDirector'
 import Rocks from './game/Rocks'
+import QuarryWalls from './game/QuarryWalls'
 import Scenery from './game/Scenery'
 import Terrain from './game/Terrain'
 import Truck from './game/Truck'
@@ -55,6 +56,7 @@ export default function App() {
         <hemisphereLight args={['#bcd8ff', '#c98a4d', 0.65]} />
         <Suspense fallback={null}>
           <Scenery />
+          <QuarryWalls />
           <CameraRig />
           <Physics
             key={runId}

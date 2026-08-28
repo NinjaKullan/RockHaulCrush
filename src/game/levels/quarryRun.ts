@@ -49,12 +49,15 @@ function slab(x0: number, x1: number, top0: number, top1: number, color: string)
   }
 }
 
-const SAND = '#dfa055'
-const SAND_ALT = '#d3924a'
-const ROUGH = '#c9863f'
-const RAMP = '#e0763a'
-const PIT = '#b57b3e'
-const BEDROCK = '#8a5a2e'
+// Haul-road palette: compacted crushed limestone, pale and desaturated so the
+// engineered driving surface reads as distinct from the warm terrain around it
+// — and so hi-vis hazards (orange drums, red gates, amber rings) pop against it.
+const SAND = '#b9b3a6' // main haul road
+const SAND_ALT = '#aca69a' // graded sections (climbs/descents)
+const ROUGH = '#9d978c' // rutted washboard stretches
+const RAMP = '#c98a4e' // ramps stay warm — they are a "send it" signal
+const PIT = '#8e887e' // gap floors, shaded and dirtier
+const BEDROCK = '#4a463f' // dark base slab under everything
 
 function washboard(xs: number[], baseY: number): GroundBox[] {
   return xs.map(
@@ -62,7 +65,7 @@ function washboard(xs: number[], baseY: number): GroundBox[] {
       c: [x, baseY],
       half: [0.7, i % 2 === 0 ? 0.18 : 0.26],
       rot: i % 2 === 0 ? 0.1 : -0.12,
-      color: '#b57b3e',
+      color: '#938d82',
       zHalf: Z_HALF,
     }),
   )
@@ -70,8 +73,8 @@ function washboard(xs: number[], baseY: number): GroundBox[] {
 
 function whoops(starts: number[], baseY: number, peak: number): GroundBox[] {
   return starts.flatMap((x) => [
-    slab(x, x + 2.6, baseY, peak, '#c9863f'),
-    slab(x + 2.6, x + 5.2, peak, baseY, '#c9863f'),
+    slab(x, x + 2.6, baseY, peak, '#a49e93'),
+    slab(x + 2.6, x + 5.2, peak, baseY, '#a49e93'),
   ])
 }
 
