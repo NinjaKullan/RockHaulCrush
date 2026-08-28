@@ -57,7 +57,7 @@ export default function CameraRig() {
 
     const light = lightRef.current
     if (light) {
-      light.position.set(t.x + 24, 42, 30)
+      light.position.set(t.x - 30, 19, 38)
       lightTarget.position.set(t.x + 6, 0, 0)
       lightTarget.updateMatrixWorld()
     }
@@ -68,8 +68,8 @@ export default function CameraRig() {
       <directionalLight
         ref={lightRef}
         castShadow
-        intensity={2.2}
-        color="#fff1d6"
+        intensity={2.6}
+        color="#ffd9a0"
         shadow-mapSize={[2048, 2048]}
         shadow-camera-left={-32}
         shadow-camera-right={32}

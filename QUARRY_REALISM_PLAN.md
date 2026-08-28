@@ -28,6 +28,11 @@ Goal: the finish is a *place with purpose* — you feed the crusher.
 - [x] Keeps existing finish-line trigger + pad geometry working
 
 ## Phase 4 — Atmosphere pass  [DONE]
+
+Note: sun sits low BEHIND the camera. An early attempt put it ahead of the
+player, which turned the plant, walls and oncoming haulers into unreadable
+silhouettes. Reference photos are lit ground against a darker sky, not
+backlight — keep the sun behind.
 Goal: match the moody reference lighting.
 - [x] Low golden-hour sun angle, long shadows
 - [x] Deeper sky + dust haze fog tuned to grey/warm world

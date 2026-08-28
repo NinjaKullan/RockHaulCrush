@@ -209,21 +209,99 @@ function CurbPosts() {
   )
 }
 
-/** Delivery zone: striped pad, goal arch, and banner (pad is visual; finish is a line). */
+/**
+ * The processing plant: the run's destination and its diegetic progress cue.
+ * Silos and stacks stand tall enough to be visible far down the course, so
+ * the player is always driving *toward* something — and the delivery pad is
+ * the crusher tip-off apron, not an abstract goal line.
+ */
+function ProcessingPlant({ x }: { x: number }) {
+  return (
+    <group position={[x, 0, 0]}>
+      {/* Crusher house: the hopper the rock is tipped into */}
+      <mesh castShadow position={[2, 4.2, -1]}>
+        <boxGeometry args={[9, 8.4, 11]} />
+        <meshStandardMaterial color="#8d8579" flatShading />
+      </mesh>
+      {/* Inverted hopper mouth on top */}
+      <mesh castShadow position={[2, 9.6, -1]}>
+        <cylinderGeometry args={[4.6, 2.6, 2.6, 4]} />
+        <meshStandardMaterial color="#6f6a61" flatShading />
+      </mesh>
+      {/* Silos */}
+      {[
+        { z: 9.5, r: 2.5, h: 17 },
+        { z: 14.5, r: 2.1, h: 14 },
+        { z: -12.5, r: 2.3, h: 15.5 },
+      ].map((s) => (
+        <group key={s.z} position={[5, 0, s.z]}>
+          <mesh castShadow position={[0, s.h / 2, 0]}>
+            <cylinderGeometry args={[s.r, s.r, s.h, 10]} />
+            <meshStandardMaterial color="#b9b2a4" flatShading />
+          </mesh>
+          <mesh castShadow position={[0, s.h + 0.9, 0]}>
+            <coneGeometry args={[s.r + 0.3, 1.8, 10]} />
+            <meshStandardMaterial color="#7d766b" flatShading />
+          </mesh>
+        </group>
+      ))}
+      {/* Stacks */}
+      {[-6.5, -3.5].map((z, i) => (
+        <group key={z} position={[9, 0, z]}>
+          <mesh castShadow position={[0, 11 + i * 2, 0]}>
+            <cylinderGeometry args={[0.85, 1.1, 22 + i * 4, 8]} />
+            <meshStandardMaterial color="#a9a094" flatShading />
+          </mesh>
+          {/* Hazard banding near the top */}
+          <mesh position={[0, 19 + i * 4, 0]}>
+            <cylinderGeometry args={[0.95, 0.95, 1.4, 8]} />
+            <meshStandardMaterial color="#c94f3a" />
+          </mesh>
+        </group>
+      ))}
+      {/* Inclined conveyor running up to a stockpile */}
+      <group position={[14, 0, 5]} rotation={[0, -0.5, 0]}>
+        <mesh castShadow position={[6, 5.4, 0]} rotation={[0, 0, 0.42]}>
+          <boxGeometry args={[19, 0.9, 2.2]} />
+          <meshStandardMaterial color="#8e867a" flatShading />
+        </mesh>
+        {/* Trestle legs */}
+        {[0, 6, 12].map((d) => (
+          <mesh key={d} castShadow position={[d, (d * 0.45) / 2, 0]}>
+            <boxGeometry args={[0.5, Math.max(1, d * 0.45), 0.5]} />
+            <meshStandardMaterial color="#6f6a61" />
+          </mesh>
+        ))}
+      </group>
+      {/* Product stockpile the conveyor feeds */}
+      <mesh castShadow position={[26, 2.4, 1]}>
+        <coneGeometry args={[8.5, 10, 9]} />
+        <meshStandardMaterial color="#c3bcae" flatShading />
+      </mesh>
+      {/* Support gantry between crusher and silos */}
+      <mesh castShadow position={[3.5, 8.2, 5]}>
+        <boxGeometry args={[0.6, 0.6, 9]} />
+        <meshStandardMaterial color="#6f6a61" />
+      </mesh>
+    </group>
+  )
+}
+
+/** Delivery zone: crusher apron, finish gate, and the plant behind it. */
 function DeliveryZone() {
   const { padStartX, padEndX } = course.deliveryZone
   const mid = (padStartX + padEndX) / 2
   const width = padEndX - padStartX
   return (
     <group>
-      {/* Striped pad on the ground */}
+      {/* Tip-off apron: hazard-striped concrete in front of the crusher */}
       {Array.from({ length: 7 }, (_, i) => (
         <mesh key={i} position={[padStartX + (i + 0.5) * (width / 7), 0.03, 0]}>
           <boxGeometry args={[width / 7 - 0.15, 0.06, 9]} />
           <meshStandardMaterial color={i % 2 === 0 ? '#7ec850' : '#3f6b2a'} />
         </mesh>
       ))}
-      {/* Goal arch */}
+      {/* Finish gate */}
       {[-4.6, 4.6].map((z) => (
         <mesh key={z} castShadow position={[mid, 2.6, z]}>
           <cylinderGeometry args={[0.16, 0.2, 5.2, 8]} />
@@ -234,6 +312,7 @@ function DeliveryZone() {
         <boxGeometry args={[1.6, 0.7, 10]} />
         <meshStandardMaterial color="#7ec850" />
       </mesh>
+      <ProcessingPlant x={padEndX + 13} />
     </group>
   )
 }

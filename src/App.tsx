@@ -7,6 +7,7 @@ import KeyboardManager from './game/KeyboardManager'
 import CameraRig from './game/CameraRig'
 import GameDirector from './game/GameDirector'
 import Rocks from './game/Rocks'
+import DistantActivity from './game/DistantActivity'
 import QuarryWalls from './game/QuarryWalls'
 import Scenery from './game/Scenery'
 import Terrain from './game/Terrain'
@@ -51,12 +52,13 @@ export default function App() {
           fov: cameraTuning.baseFov,
         }}
       >
-        <Sky sunPosition={[40, 30, 25]} turbidity={4} rayleigh={1.1} />
-        <fog attach="fog" args={['#f0d0a2', 70, 230]} />
-        <hemisphereLight args={['#bcd8ff', '#c98a4d', 0.65]} />
+        <Sky sunPosition={[-70, 11, 30]} turbidity={6} rayleigh={2.6} mieCoefficient={0.01} />
+        <fog attach="fog" args={['#e2c49c', 55, 210]} />
+        <hemisphereLight args={['#a8c0e0', '#b89260', 0.62]} />
         <Suspense fallback={null}>
           <Scenery />
           <QuarryWalls />
+          <DistantActivity />
           <CameraRig />
           <Physics
             key={runId}
