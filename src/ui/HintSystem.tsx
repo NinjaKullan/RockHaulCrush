@@ -1,4 +1,5 @@
 import { useEffect, useRef, useState } from 'react'
+import { isTouchMode } from '../game/device'
 import { course } from '../game/levels/quarryRun'
 import { telemetry } from '../game/refs'
 import { useGameStore } from '../game/store'
@@ -11,6 +12,8 @@ import { useGameStore } from '../game/store'
 interface Hint {
   id: string
   text: string
+  /** Shown instead of `text` on touch devices, where key names mean nothing. */
+  touchText?: string
   /** Higher wins when several are eligible in the same tick. */
   priority: number
   test: (ctx: HintContext) => boolean
@@ -32,18 +35,21 @@ const HINTS: Hint[] = [
     id: 'flip',
     priority: 3,
     text: '🔄 Flipped! Press R to recover at the last checkpoint (−5 s).',
+    touchText: '🔄 Flipped! Tap ⟲ to recover at the last checkpoint (−5 s).',
     test: (c) => c.flippedFor > 1.2,
   },
   {
     id: 'spill',
     priority: 2,
     text: '🧲 Rocks spilled! Drive close and press SPACE — the magnet pulls them back into the bed.',
+    touchText: '🧲 Rocks spilled! Drive close and tap 🧲 — the magnet pulls them back into the bed.',
     test: (c) => c.recoverable >= 3 && c.magnetCharges > 0,
   },
   {
     id: 'barrels',
     priority: 1,
     text: '⚠ Barrels incoming — steer left/right (A/D) to dodge them!',
+    touchText: '⚠ Barrels incoming — tap ◀ ▶ to dodge them!',
     test: (c) => c.x > 22 && c.x < 30,
   },
   {
@@ -151,5 +157,9 @@ export default function HintSystem() {
   }, [phase, active])
 
   if (!active || phase !== 'playing') return null
-  return <div className="hint-toast">{active.text}</div>
+  return (
+    <div className="hint-toast">
+      {isTouchMode() && active.touchText ? active.touchText : active.text}
+    </div>
+  )
 }

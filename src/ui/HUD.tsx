@@ -1,5 +1,6 @@
 import { useEffect, useRef, useState } from 'react'
 import { magnetTuning, scoringTuning } from '../config/gameTuning'
+import { isTouchMode } from '../game/device'
 import { telemetry } from '../game/refs'
 import { useGameStore } from '../game/store'
 
@@ -51,7 +52,15 @@ function SpeedDial({ speed, accel }: { speed: number; accel: number }) {
           <line x1={60} y1={60} x2={60} y2={14} stroke="#ffd25e" strokeWidth={4} strokeLinecap="round" />
         </g>
         <circle cx={60} cy={60} r={6} fill="#ffd25e" />
-        <text x={60} y={88} textAnchor="middle" fontSize={20} fontWeight={900} fill="#fdf3e3">
+        <text
+          className="hud-dial-speed"
+          x={60}
+          y={88}
+          textAnchor="middle"
+          fontSize={20}
+          fontWeight={900}
+          fill="#fdf3e3"
+        >
           {speed}
         </text>
         <text x={60} y={102} textAnchor="middle" fontSize={8.5} fontWeight={600} fill="#b8ab98">
@@ -148,7 +157,7 @@ export default function HUD() {
       >
         MAGNET {'⚡'.repeat(magnetCharges)}
         {magnetCharges === 0 && !magnetActive ? '—' : ''}
-        <span className="hud-magnet-key"> [SPACE]</span>
+        {!isTouchMode() && <span className="hud-magnet-key"> [SPACE]</span>}
       </div>
       <SpeedDial speed={speed} accel={accel} />
       <div className="hud-hints">

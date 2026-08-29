@@ -10,6 +10,7 @@ import { magnet } from './refs'
 import { isSoundEnabled, setSoundEnabled } from './audio'
 import { course, selectCourse, type TrackKind } from './levels/quarryRun'
 import { particleSettings } from './Particles'
+import { quality } from './device'
 
 const REDUCED_MOTION_KEY = 'rhr-reduced-motion'
 
@@ -147,7 +148,7 @@ export const useGameStore = create<GameStore>((set, get) => ({
 
   toggleReducedMotion: () => {
     const next = !get().reducedMotion
-    particleSettings.intensity = next ? 0.35 : 1
+    particleSettings.intensity = (next ? 0.35 : 1) * quality.particleScale
     try {
       globalThis.localStorage?.setItem(REDUCED_MOTION_KEY, next ? '1' : '0')
     } catch {
@@ -244,4 +245,5 @@ export const useGameStore = create<GameStore>((set, get) => ({
 }))
 
 // Apply persisted reduced-motion preference to the particle system at load.
-particleSettings.intensity = useGameStore.getState().reducedMotion ? 0.35 : 1
+particleSettings.intensity =
+  (useGameStore.getState().reducedMotion ? 0.35 : 1) * quality.particleScale

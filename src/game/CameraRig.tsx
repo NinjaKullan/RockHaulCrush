@@ -2,6 +2,7 @@ import { useFrame } from '@react-three/fiber'
 import { useEffect, useMemo, useRef } from 'react'
 import * as THREE from 'three'
 import { cameraTuning as CAM, truckTuning } from '../config/gameTuning'
+import { quality } from './device'
 import { gameRefs, telemetry } from './refs'
 import { useGameStore } from './store'
 
@@ -70,7 +71,7 @@ export default function CameraRig() {
         castShadow
         intensity={2.6}
         color="#ffd9a0"
-        shadow-mapSize={[2048, 2048]}
+        shadow-mapSize={[quality.shadowMapSize, quality.shadowMapSize]}
         shadow-camera-left={-32}
         shadow-camera-right={32}
         shadow-camera-top={32}

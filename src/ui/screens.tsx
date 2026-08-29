@@ -1,7 +1,26 @@
 import { useEffect, useState } from 'react'
 import { gameplayTuning, scoringTuning } from '../config/gameTuning'
 import { initAudio, sfx } from '../game/audio'
+import { isTouchMode, requestImmersive } from '../game/device'
 import { useGameStore } from '../game/store'
+
+/** Describes whichever control scheme this device actually has. */
+function ControlsLine() {
+  if (isTouchMode()) {
+    return (
+      <p className="controls-line">
+        <b>▲</b> drive · <b>▼</b> brake · <b>◀ ▶</b> steer · <b>🧲</b> cargo magnet ·{' '}
+        <b>⟲</b> recover · <b>⏸</b> pause
+      </p>
+    )
+  }
+  return (
+    <p className="controls-line">
+      <b>W/↑</b> drive · <b>S/↓</b> brake/reverse · <b>A/←</b> steer left · <b>D/→</b> steer
+      right · <b>Space</b> magnet · <b>R</b> recover · <b>Esc</b> pause
+    </p>
+  )
+}
 
 /** Sound + reduced-motion toggles, shared by title and pause screens. */
 function SettingsRow() {
@@ -58,6 +77,7 @@ export function TitleScreen() {
         className="big-button"
         onClick={() => {
           initAudio()
+          void requestImmersive()
           startRun()
         }}
         autoFocus
@@ -72,14 +92,10 @@ export function TitleScreen() {
         </p>
         <p>
           <b>Steer around</b> barrels, barriers, and falling rocks — and time the swinging
-          crane. Spilled rocks aren't gone: drive close and hit <b>Space</b> — the Cargo
-          Magnet pulls them back aboard (3 charges).
+          crane. Spilled rocks aren't gone: drive close and use the{' '}
+          <b>Cargo Magnet</b> to pull them back aboard (3 charges).
         </p>
-        <p className="controls-line">
-          <b>W/↑</b> drive · <b>S/↓</b> brake/reverse · <b>A/←</b> steer left ·{' '}
-          <b>D/→</b> steer right · <b>Space</b> cargo magnet · <b>R</b> recover ·{' '}
-          <b>Esc</b> pause
-        </p>
+        <ControlsLine />
       </div>
       {bestStars > 0 && (
         <div className="title-best">
@@ -143,10 +159,7 @@ export function PauseMenu() {
       <button className="mid-button" onClick={startRun}>
         ⟲ Restart Run
       </button>
-      <p className="controls-line">
-        <b>W/↑</b> drive · <b>S/↓</b> brake/reverse · <b>A/←</b> steer left · <b>D/→</b> steer
-        right · <b>Space</b> magnet · <b>R</b> recover · <b>Esc</b> resume
-      </p>
+      <ControlsLine />
       <SettingsRow />
     </div>
   )
