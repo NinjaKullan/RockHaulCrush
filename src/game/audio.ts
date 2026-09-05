@@ -229,6 +229,21 @@ export const sfx = {
     tone(base, 0.16, 0.1, 'triangle')
     tone(base * 1.5, 0.28, 0.1, 'triangle', 0.12)
   },
+  /** The player's own air horn: deep, long, unmistakably a haul truck. */
+  horn(): void {
+    tone(196, 0.55, 0.16, 'sawtooth')
+    tone(247, 0.55, 0.12, 'sawtooth')
+    tone(294, 0.5, 0.06, 'square', 0.02)
+  },
+  /** Radio squelch before a foreman line. */
+  radio(): void {
+    noiseBurst({ duration: 0.12, volume: 0.09, filterFrom: 2600, filterTo: 1800, type: 'bandpass' })
+    tone(1900, 0.05, 0.03, 'square', 0.1)
+  },
+  /** Final-seconds clock tick. */
+  clockTick(urgent: boolean): void {
+    tone(urgent ? 1320 : 990, 0.04, 0.09, 'square')
+  },
   /** Weighbridge readout ticking up, then the settle ding. */
   weighTick(): void {
     tone(1500, 0.03, 0.05, 'square')

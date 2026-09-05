@@ -3,7 +3,7 @@ import { useEffect, useMemo, useRef } from 'react'
 import * as THREE from 'three'
 import { cameraTuning as CAM, truckTuning } from '../config/gameTuning'
 import { quality } from './device'
-import { gameRefs, telemetry } from './refs'
+import { cameraShake, gameRefs, telemetry } from './refs'
 import { useGameStore } from './store'
 
 /**
@@ -49,6 +49,17 @@ export default function CameraRig() {
     cam.lookAt(t.x + CAM.lookAhead, t.y + CAM.lookUp, t.z * CAM.zLook)
 
     const reduced = useGameStore.getState().reducedMotion
+
+    // Impact shake: random jitter that decays fast; gentle under reduced motion.
+    if (cameraShake.amp > 0.001) {
+      const a = cameraShake.amp * (reduced ? 0.3 : 1)
+      cam.position.y += (Math.random() - 0.5) * 2 * a
+      cam.position.z += (Math.random() - 0.5) * 2 * a
+      cam.rotation.z += (Math.random() - 0.5) * a * 0.12
+      cameraShake.amp *= Math.exp(-7 * delta)
+    } else {
+      cameraShake.amp = 0
+    }
     const speed = Math.abs(v.x)
     const targetFov = reduced
       ? CAM.baseFov

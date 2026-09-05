@@ -7,7 +7,7 @@ import { blastZone as BZ } from '../levels/quarryRun'
 import { mulberry32, rangeFrom } from '../rng'
 import { emitParticles } from '../Particles'
 import { sfx } from '../audio'
-import { gameRefs } from '../refs'
+import { gameRefs, shakeCamera } from '../refs'
 import { useGameStore } from '../store'
 
 /**
@@ -58,6 +58,12 @@ export default function BlastZone() {
     if (state.current === 'warned') {
       state.current = 'blasted'
       if (playing) sfx.blast()
+      {
+        // The ground kicks harder the closer you are to the face.
+        const truck = gameRefs.truck
+        const d = truck ? Math.abs(truck.translation().x - BZ.x) : 100
+        shakeCamera(0.45 * Math.max(0, 1 - d / 60))
+      }
       // Dust plume + secondary smoke; the rubble itself is the real payload.
       emitParticles({
         x: BZ.x,
@@ -142,6 +148,7 @@ export default function BlastZone() {
           )
           truck.applyTorqueImpulse({ x: 0, y: 0, z: 0.8 * m }, true)
           if (useGameStore.getState().phase === 'playing') sfx.impact(1)
+          shakeCamera(0.3)
           emitParticles({
             x: tt.x,
             y: tt.y + 0.8,

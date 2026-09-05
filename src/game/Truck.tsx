@@ -10,7 +10,7 @@ import { useEffect, useMemo, useRef } from 'react'
 import * as THREE from 'three'
 import { mudTuning, truckTuning as T } from '../config/gameTuning'
 import { course } from './levels/quarryRun'
-import { gameRefs, input, telemetry } from './refs'
+import { gameRefs, input, shakeCamera, telemetry } from './refs'
 import { useGameStore } from './store'
 import { setEngine, sfx, stopEngine } from './audio'
 import { emitParticles } from './Particles'
@@ -188,6 +188,7 @@ export default function Truck() {
     if (grounded && !telemetry.grounded && lv.y < -4) {
       const intensity = Math.min(1, (-lv.y - 4) / 8)
       if (controlsLive) sfx.impact(intensity)
+      shakeCamera(0.08 + intensity * 0.3)
       emitParticles({
         x: t.x,
         y: t.y - 0.8,
@@ -219,6 +220,7 @@ export default function Truck() {
           body.applyImpulse({ x: -0.6 * mass, y: 1.6 * mass, z: 0 }, true)
           body.applyTorqueImpulse({ x: 0, y: 0, z: -0.7 * mass }, true)
           if (controlsLive) sfx.impact(0.5)
+          shakeCamera(0.12)
           emitParticles({
             x: hole.x,
             y: hole.groundY + 0.2,

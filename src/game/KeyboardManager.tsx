@@ -1,6 +1,6 @@
 import { useEffect } from 'react'
 import { initAudio, sfx } from './audio'
-import { input, resetInput } from './refs'
+import { horn, input, resetInput } from './refs'
 import { useGameStore } from './store'
 
 /** Codes we own — their browser defaults (scrolling etc.) are suppressed. */
@@ -18,6 +18,7 @@ const HANDLED = new Set([
   'Escape',
   'Enter',
   'Backquote',
+  'KeyH',
 ])
 
 /** Installs global keyboard handlers. Renders nothing. */
@@ -70,6 +71,12 @@ export default function KeyboardManager() {
           break
         case 'Backquote':
           store.toggleDebug()
+          break
+        case 'KeyH':
+          if (store.phase === 'playing') {
+            sfx.horn()
+            horn.lastAt = performance.now() / 1000
+          }
           break
       }
     }

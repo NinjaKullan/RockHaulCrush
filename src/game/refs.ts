@@ -79,3 +79,12 @@ export function resetRunStats(): void {
   runStats.recoveries = 0
   runStats.topSpeed = 0
 }
+
+/** Camera shake amplitude (meters); systems add, the camera rig decays it. */
+export const cameraShake = { amp: 0 }
+export function shakeCamera(amount: number): void {
+  cameraShake.amp = Math.min(0.6, cameraShake.amp + amount)
+}
+
+/** Player horn: when it was last sounded, so nearby haulers can answer. */
+export const horn = { lastAt: -10, answeredAt: -10 }

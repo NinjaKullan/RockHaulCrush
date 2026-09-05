@@ -24,6 +24,7 @@ import TrainCrossing from './game/hazards/TrainCrossing'
 import Particles from './game/Particles'
 import { useGameStore } from './game/store'
 import DebugOverlay from './ui/DebugOverlay'
+import ForemanRadio from './ui/ForemanRadio'
 import HintSystem from './ui/HintSystem'
 import HUD from './ui/HUD'
 import TouchControls, { RotatePrompt } from './ui/TouchControls'
@@ -41,6 +42,7 @@ export default function App() {
       <KeyboardManager />
       {phase !== 'title' && <HUD />}
       <HintSystem />
+      <ForemanRadio />
       <TouchControls />
       <RotatePrompt />
       {phase === 'title' && <TitleScreen />}

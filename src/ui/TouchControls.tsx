@@ -1,7 +1,7 @@
 import { useEffect, useState } from 'react'
 import { isTouchMode, onTouchModeChange } from '../game/device'
 import { initAudio, sfx } from '../game/audio'
-import { input, resetInput } from '../game/refs'
+import { horn, input, resetInput } from '../game/refs'
 import { useGameStore } from '../game/store'
 
 /**
@@ -104,6 +104,17 @@ export default function TouchControls() {
             }}
           >
             ⟲
+          </button>
+          <button
+            className="touch-btn touch-small"
+            onPointerDown={(e) => {
+              e.preventDefault()
+              if (useGameStore.getState().phase !== 'playing') return
+              sfx.horn()
+              horn.lastAt = performance.now() / 1000
+            }}
+          >
+            📯
           </button>
         </div>
         <HoldButton label="▼" hint="BRAKE" control="brake" className="touch-brake" />

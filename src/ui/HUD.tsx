@@ -3,6 +3,7 @@ import { magnetTuning, scoringTuning } from '../config/gameTuning'
 import { isTouchMode } from '../game/device'
 import { popupQueue, telemetry, type Popup } from '../game/refs'
 import { formatScore } from '../game/scoring'
+import { sfx } from '../game/audio'
 import { useGameStore } from '../game/store'
 
 const DIAL_MAX = 60 // km/h at the end of the arc
@@ -133,6 +134,18 @@ export default function HUD() {
     prevInBed.current = cargo.inBed
   }, [cargo.inBed])
 
+  // Clock ticks through the last ten seconds.
+  const phase = useGameStore((s) => s.phase)
+  const lastTick = useRef(-1)
+  useEffect(() => {
+    if (phase !== 'playing') return
+    const whole = Math.ceil(timeLeft)
+    if (timeLeft < 10 && whole !== lastTick.current) {
+      lastTick.current = whole
+      sfx.clockTick(timeLeft < 5)
+    }
+  }, [timeLeft, phase])
+
   const low = cargo.inBed < scoringTuning.starThresholds[0]
   const minutes = Math.floor(timeLeft / 60)
   const seconds = Math.floor(timeLeft % 60)
@@ -192,7 +205,7 @@ export default function HUD() {
       <SpeedDial speed={speed} accel={accel} />
       <div className="hud-hints">
         <b>W/↑</b> drive&ensp;<b>S/↓</b> brake&ensp;<b>A/←</b>·<b>D/→</b> steer&ensp;
-        <b>Space</b> magnet&ensp;<b>R</b> recover&ensp;<b>Esc</b> pause
+        <b>Space</b> magnet&ensp;<b>H</b> horn&ensp;<b>R</b> recover&ensp;<b>Esc</b> pause
       </div>
       <button className="hud-restart" onClick={pause}>
         ⏸ Pause

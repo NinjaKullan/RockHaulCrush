@@ -3,7 +3,9 @@ import { useBeforePhysicsStep } from '@react-three/rapier'
 import { useRef } from 'react'
 import { course } from './levels/quarryRun'
 import { countStates, deliverSnapshot } from './cargoRules'
-import { cargo, gameRefs, magnet } from './refs'
+import { cargo, gameRefs, magnet, pushPopup } from './refs'
+import { emitParticles } from './Particles'
+import { scoringTuning } from '../config/gameTuning'
 import { useGameStore } from './store'
 
 /**
@@ -46,6 +48,24 @@ export default function GameDirector() {
       cargo.states = snapshot.states
       store.setCargo(countStates(cargo.states))
       store.finish(snapshot.delivered)
+      if (snapshot.delivered >= scoringTuning.totalRocks) {
+        pushPopup('PERFECT HAUL!', 'perfect')
+        emitParticles({
+          x: t.x,
+          y: t.y + 1.2,
+          z: t.z,
+          count: 60,
+          color: 0xffd25e,
+          speed: 5,
+          spread: 2.2,
+          up: 6,
+          life: 1.6,
+          size: 0.16,
+          gravity: 4,
+        })
+      } else if (snapshot.delivered >= scoringTuning.starThresholds[0]) {
+        pushPopup('LOAD DELIVERED', 'section')
+      }
       return
     }
 

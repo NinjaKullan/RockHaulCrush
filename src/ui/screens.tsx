@@ -11,14 +11,14 @@ function ControlsLine() {
     return (
       <p className="controls-line">
         <b>▲</b> drive · <b>▼</b> brake · <b>◀ ▶</b> steer · <b>🧲</b> cargo magnet ·{' '}
-        <b>⟲</b> recover · <b>⏸</b> pause
+        <b>⟲</b> recover · <b>📯</b> horn · <b>⏸</b> pause
       </p>
     )
   }
   return (
     <p className="controls-line">
       <b>W/↑</b> drive · <b>S/↓</b> brake/reverse · <b>A/←</b> steer left · <b>D/→</b> steer
-      right · <b>Space</b> magnet · <b>R</b> recover · <b>Esc</b> pause
+      right · <b>Space</b> magnet · <b>H</b> horn · <b>R</b> recover · <b>Esc</b> pause
     </p>
   )
 }

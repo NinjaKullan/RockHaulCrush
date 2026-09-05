@@ -12,7 +12,7 @@ import { mulberry32 } from '../rng'
 import { useHazardRegistry } from '../hazardRegistry'
 import { sfx } from '../audio'
 import { emitParticles } from '../Particles'
-import { gameRefs } from '../refs'
+import { horn, gameRefs } from '../refs'
 import { useGameStore } from '../store'
 
 /**
@@ -82,6 +82,22 @@ export default function OncomingHauler() {
         const dist = posX.current[i] - truck.translation().x
         if (dist > 0 && dist < H.hornRange) {
           horned.current[i] = true
+          sfx.haulerHorn()
+        }
+      }
+
+      // Answer the player's horn: one hauler, once per honk, half a second later.
+      if (truck && playing) {
+        const now = performance.now() / 1000
+        const ahead = posX.current[i] - truck.translation().x
+        if (
+          ahead > 4 &&
+          ahead < 70 &&
+          now - horn.lastAt > 0.5 &&
+          now - horn.lastAt < 0.7 &&
+          horn.answeredAt < horn.lastAt
+        ) {
+          horn.answeredAt = now
           sfx.haulerHorn()
         }
       }

@@ -30,8 +30,11 @@ await page.click('.big-button')
 await page.waitForTimeout(4200)
 
 // Weave lanes every ~1.6 s at full throttle; collect popups.
-await page.keyboard.down('KeyW')
+if (mobile) await page.locator('.touch-throttle').dispatchEvent('pointerdown')
+else await page.keyboard.down('KeyW')
 const popups = new Map()
+const radio = new Set()
+let honks = 0
 let shotTaken = false
 let weighShot = false
 const start = Date.now()
@@ -49,6 +52,12 @@ while (Date.now() - start < 150000) {
     continue
   }
   const seen = await page.locator('.hud-popup').allInnerTexts()
+  for (const r of await page.locator('.radio-text').allInnerTexts()) radio.add(r)
+  if (honks < 3 && Date.now() - start > 20000 + honks * 15000) {
+    honks++
+    if (mobile) await page.locator('.touch-small').nth(2).dispatchEvent('pointerdown')
+    else await page.keyboard.press('KeyH')
+  }
   for (const s of seen) {
     popups.set(s, (popups.get(s) ?? 0) + 1)
     if (!shotTaken) {
@@ -69,6 +78,7 @@ await page.keyboard.up('KeyW')
 await page.keyboard.up('KeyA')
 await page.keyboard.up('KeyD')
 console.log('popups seen:', [...popups.keys()])
+console.log('radio lines:', [...radio])
 console.log('hud score at end:', await text('.hud-score'))
 await page.waitForTimeout(2600)
 await shot('score-2-results')
