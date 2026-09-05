@@ -100,7 +100,8 @@ for (let i = 0; i < 12; i++) {
   if (phase.includes('finished') || phase.includes('failed')) break
 }
 await page.keyboard.up('KeyW')
-await page.waitForTimeout(800)
+// The weighbridge ticker holds the screen for a couple of seconds first.
+await page.locator('.screen-heading').waitFor({ timeout: 8000 }).catch(() => {})
 console.log('results heading:', await text('.screen-heading'))
 console.log('results sub:', await text('.results-sub'))
 console.log('stars row:', await text('.stars-row'))

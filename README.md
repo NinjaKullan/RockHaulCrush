@@ -34,8 +34,14 @@ Headless verification (dev server must be running):
 
 ## How to play
 
-Pick **Standard Run** (~290 m, 1:45) or **Long Haul** (~430 m, 2:50) on the
+Pick **Standard Run** (~380 m, 2:10) or **Long Haul** (~460 m, 3:05) on the
 title screen. Deliver 12+ rocks to score; 16+ for two stars; all 20 for three.
+On top of the stars there is a **Haul Score**: every rock, every second left,
+every close call past a hazard at speed, and every section cleared without a
+spill (consecutive clean sections grow a multiplier up to ×3). The load is
+weighed on the plant's weighbridge, and the foreman sets one bonus objective
+per run. Lifetime rocks hauled earn ranks (Rookie → Quarry Legend) that unlock
+truck paints. Results can be shared with one tap.
 
 | Key       | Action                         |
 | --------- | ------------------------------ |
@@ -44,6 +50,7 @@ title screen. Deliver 12+ rocks to score; 16+ for two stars; all 20 for three.
 | `A` / `←` | Steer left                     |
 | `D` / `→` | Steer right                    |
 | `Space`   | Cargo Magnet (3 charges — pulls spilled rocks back into the bed) |
+| `H`       | Air horn (oncoming haulers answer) |
 | `R`       | Recover at latest checkpoint (−5 s) |
 | `Esc`     | Pause / resume                 |
 | `` ` ``   | Developer debug overlay        |
@@ -67,12 +74,18 @@ cargo, slow burns clock.
   (inBed/recoverable/lost/delivered) plus magnet forces
 - `src/game/GameDirector.tsx` — timer, checkpoints, delivery snapshot,
   recovery execution
-- `src/game/hazards/` — Barrels, Barriers, FallingRocks, BlastZone, Crane
+- `src/game/hazards/` — Barrels, Barriers, FallingRocks, BlastZone, Crane,
+  TrainCrossing, OncomingHauler; moving ones register in `hazardRegistry.ts`
+- `src/game/ScoreSystem.tsx` + `scoring.ts` — Haul Score: near misses, clean
+  sections, streak multiplier, final breakdown (pure maths unit-tested)
+- `src/game/career.ts` + `objectives.ts` — ranks, paint unlocks, and the
+  rotating foreman's bonus objective
 - `src/game/store.ts` — zustand state machine
   (title → countdown → playing ⇄ paused → finished/failed)
 - `src/game/audio.ts` — procedural WebAudio (gesture-initialized)
 - `src/game/Particles.tsx` — pooled instanced particle system
-- `src/ui/` — HUD, screens, contextual hint system, debug overlay
+- `src/ui/` — HUD (score, popups, dial), screens (weighbridge, results,
+  share), hint system, foreman radio, touch controls, debug overlay
 
 ## Status
 

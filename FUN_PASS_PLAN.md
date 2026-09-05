@@ -51,3 +51,16 @@ What is missing for "love":
 Constraints unchanged: free/open-source only, no CDN, no assets with unclear
 licences, all tuning in `src/config/gameTuning.ts`, tests stay green, verified
 headless with Playwright on desktop and iPhone emulation.
+
+## Outcome
+
+All six phases shipped and verified headless (desktop 1280×720 and iPhone 13
+landscape emulation): Haul Score with popups and results tally, weighbridge
+finale, foreman radio and horn with honk-back, camera shake and perfect-haul
+burst, ranks with progress bar, paint unlocks, foreman's bonus objective,
+share button (Web Share with clipboard fallback). Tests: 81 passing.
+
+Tuning knobs live in `scoreTuning` and `weighbridgeTuning` in
+`src/config/gameTuning.ts`; rank thresholds and paints in `src/game/career.ts`;
+radio lines in `src/ui/ForemanRadio.tsx`; objectives in
+`src/game/objectives.ts`.
