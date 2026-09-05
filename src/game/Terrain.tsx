@@ -1,5 +1,6 @@
 import { CuboidCollider, RigidBody } from '@react-three/rapier'
 import { useMemo } from 'react'
+import { useGameStore } from './store'
 import { course, groundTopAt, trainCrossing, type GroundBox } from './levels/quarryRun'
 import { mulberry32, rangeFrom } from './rng'
 
@@ -287,13 +288,82 @@ function ProcessingPlant({ x }: { x: number }) {
   )
 }
 
-/** Delivery zone: crusher apron, finish gate, and the plant behind it. */
+/**
+ * Weighbridge: steel scale deck flush with the pad, side rails, and a readout
+ * board that lights up green the moment the load is on the scale.
+ */
+function Weighbridge({ x0, x1 }: { x0: number; x1: number }) {
+  const weighing = useGameStore((s) => s.phase === 'finished')
+  const len = x1 - x0
+  const mid = (x0 + x1) / 2
+  return (
+    <group>
+      {/* Scale deck: dark steel plate with a yellow border stripe */}
+      <mesh position={[mid, 0.07, 0]}>
+        <boxGeometry args={[len, 0.08, 5.2]} />
+        <meshStandardMaterial color="#f0c419" />
+      </mesh>
+      <mesh position={[mid, 0.09, 0]}>
+        <boxGeometry args={[len - 0.5, 0.08, 4.7]} />
+        <meshStandardMaterial color="#3b3f45" metalness={0.5} roughness={0.55} />
+      </mesh>
+      {/* Deck seams */}
+      {[-1.2, 0, 1.2].map((z) => (
+        <mesh key={z} position={[mid, 0.14, z]}>
+          <boxGeometry args={[len - 0.7, 0.01, 0.05]} />
+          <meshStandardMaterial color="#23262a" />
+        </mesh>
+      ))}
+      {/* Side rails */}
+      {[-2.9, 2.9].map((z) => (
+        <group key={z}>
+          <mesh castShadow position={[mid, 0.55, z]}>
+            <boxGeometry args={[len, 0.1, 0.1]} />
+            <meshStandardMaterial color="#f0c419" />
+          </mesh>
+          {[x0 + 0.3, mid, x1 - 0.3].map((px) => (
+            <mesh key={px} castShadow position={[px, 0.3, z]}>
+              <cylinderGeometry args={[0.05, 0.05, 0.6, 6]} />
+              <meshStandardMaterial color="#3b3f45" />
+            </mesh>
+          ))}
+        </group>
+      ))}
+      {/* Readout board on the right verge, facing the driver */}
+      <group position={[x1 + 2.5, 0, 5.6]}>
+        <mesh castShadow position={[0, 1.6, 0]}>
+          <boxGeometry args={[0.16, 3.2, 0.16]} />
+          <meshStandardMaterial color="#3b3f45" />
+        </mesh>
+        <mesh castShadow position={[0, 3.5, 0]} rotation={[0, -Math.PI / 2, 0]}>
+          <boxGeometry args={[3.2, 1.5, 0.18]} />
+          <meshStandardMaterial color="#24272b" />
+        </mesh>
+        <mesh position={[-0.1, 3.5, 0]} rotation={[0, -Math.PI / 2, 0]}>
+          <planeGeometry args={[2.8, 1.1]} />
+          <meshStandardMaterial
+            color={weighing ? '#3cff7a' : '#1d3a26'}
+            emissive={weighing ? '#3cff7a' : '#0f2a17'}
+            emissiveIntensity={weighing ? 1.6 : 0.4}
+          />
+        </mesh>
+        <mesh castShadow position={[0, 4.55, 0]}>
+          <boxGeometry args={[0.22, 0.6, 3.4]} />
+          <meshStandardMaterial color="#f0c419" />
+        </mesh>
+      </group>
+    </group>
+  )
+}
+
+/** Delivery zone: weighbridge, crusher apron, finish gate, and the plant behind it. */
 function DeliveryZone() {
   const { padStartX, padEndX } = course.deliveryZone
   const mid = (padStartX + padEndX) / 2
   const width = padEndX - padStartX
   return (
     <group>
+      <Weighbridge x0={padStartX + 0.4} x1={padEndX - 0.4} />
       {/* Tip-off apron: hazard-striped concrete in front of the crusher */}
       {Array.from({ length: 7 }, (_, i) => (
         <mesh key={i} position={[padStartX + (i + 0.5) * (width / 7), 0.03, 0]}>

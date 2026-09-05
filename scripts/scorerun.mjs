@@ -33,11 +33,21 @@ await page.waitForTimeout(4200)
 await page.keyboard.down('KeyW')
 const popups = new Map()
 let shotTaken = false
+let weighShot = false
 const start = Date.now()
 let side = 0
 while (Date.now() - start < 150000) {
-  const phase = await page.evaluate(() => document.querySelector('.results-sub') ? 'done' : 'play')
+  const phase = await page.evaluate(() =>
+    document.querySelector('.results-sub') ? 'done' : document.querySelector('.weigh-card') ? 'weigh' : 'play',
+  )
   if (phase === 'done') break
+  if (phase === 'weigh' && !weighShot) {
+    weighShot = true
+    await page.waitForTimeout(900)
+    console.log('weigh card:', (await text('.weigh-card')).replace(/\n/g, ' | '))
+    await shot('score-1b-weigh')
+    continue
+  }
   const seen = await page.locator('.hud-popup').allInnerTexts()
   for (const s of seen) {
     popups.set(s, (popups.get(s) ?? 0) + 1)

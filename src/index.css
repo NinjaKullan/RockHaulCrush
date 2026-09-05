@@ -380,6 +380,45 @@ canvas {
   }
 }
 
+.weigh-card {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 4px;
+  padding: 14px 36px;
+  border-radius: 16px;
+  background: rgba(20, 24, 22, 0.86);
+  border: 3px solid #f0c419;
+  box-shadow: 0 6px 30px rgba(0, 0, 0, 0.45);
+  animation: countdown-pop 0.4s;
+}
+
+.weigh-label {
+  font-size: 15px;
+  font-weight: 900;
+  letter-spacing: 0.3em;
+  color: #f0c419;
+}
+
+.weigh-value {
+  font-size: clamp(56px, 12vw, 96px);
+  font-weight: 900;
+  line-height: 1;
+  color: #3cff7a;
+  text-shadow: 0 0 18px rgba(60, 255, 122, 0.55);
+  font-variant-numeric: tabular-nums;
+}
+
+.weigh-unit {
+  font-size: 0.45em;
+  color: #9fe8b0;
+}
+
+.weigh-sub {
+  font-size: 15px;
+  color: #d8cfc2;
+}
+
 .score-card {
   width: min(92vw, 440px);
   background: rgba(38, 30, 20, 0.85);

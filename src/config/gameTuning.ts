@@ -195,6 +195,13 @@ export function starsForDelivered(delivered: number): number {
   return 0
 }
 
+export const weighbridgeTuning = {
+  /** Tonnes per delivered rock — what the readout board reports. */
+  tonnesPerRock: 1.15,
+  /** How long the readout takes to settle, seconds. */
+  weighSeconds: 1.7,
+} as const
+
 export const scoreTuning = {
   /** Points per rock delivered. */
   rockValue: 100,

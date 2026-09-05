@@ -33,7 +33,8 @@ export default function ScoreSystem() {
         if (s.streak > 0) s.setStreak(0)
       }
       if (s.checkpointIndex > prev.checkpointIndex) {
-        if (spillsSinceCheckpoint.current === 0) {
+        // Clean only counts with cargo aboard — an empty bed can't spill.
+        if (spillsSinceCheckpoint.current === 0 && s.cargo.inBed > 0) {
           const streak = s.streak + 1
           s.setStreak(streak)
           const mult = useGameStore.getState().multiplier

@@ -229,6 +229,14 @@ export const sfx = {
     tone(base, 0.16, 0.1, 'triangle')
     tone(base * 1.5, 0.28, 0.1, 'triangle', 0.12)
   },
+  /** Weighbridge readout ticking up, then the settle ding. */
+  weighTick(): void {
+    tone(1500, 0.03, 0.05, 'square')
+  },
+  weighDone(): void {
+    tone(1047, 0.25, 0.12, 'sine')
+    tone(1568, 0.4, 0.08, 'sine', 0.08)
+  },
   /** Perfect-haul fanfare. */
   perfect(): void {
     const notes = [523, 659, 784, 1047, 1319]

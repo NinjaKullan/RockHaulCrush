@@ -1,5 +1,5 @@
-import { useEffect, useState } from 'react'
-import { gameplayTuning, scoreTuning, scoringTuning } from '../config/gameTuning'
+import { useEffect, useRef, useState } from 'react'
+import { gameplayTuning, scoreTuning, scoringTuning, weighbridgeTuning } from '../config/gameTuning'
 import { initAudio, sfx } from '../game/audio'
 import { isTouchMode, requestImmersive } from '../game/device'
 import { useGameStore, type RunResult } from '../game/store'
@@ -224,6 +224,48 @@ function ScoreBreakdownView({ result }: { result: RunResult }) {
   )
 }
 
+/**
+ * Weighbridge moment: the truck sits on the scale while the readout ticks up
+ * to the delivered tonnage, then the results land.
+ */
+function WeighOverlay({ delivered, onDone }: { delivered: number; onDone: () => void }) {
+  const target = delivered * weighbridgeTuning.tonnesPerRock
+  const ms = weighbridgeTuning.weighSeconds * 1000
+  const tonnes = useCountUp(Math.round(target * 10), ms, 250) / 10
+  const lastTick = useRef(-1)
+
+  useEffect(() => {
+    const t = Math.floor(tonnes)
+    if (t !== lastTick.current) {
+      lastTick.current = t
+      if (t > 0) sfx.weighTick()
+    }
+  }, [tonnes])
+
+  useEffect(() => {
+    const id = setTimeout(() => {
+      sfx.weighDone()
+      onDone()
+    }, ms + 900)
+    return () => clearTimeout(id)
+  }, [ms, onDone])
+
+  return (
+    <div className="screen screen-transparent">
+      <div className="weigh-card">
+        <div className="weigh-label">WEIGHBRIDGE</div>
+        <div className="weigh-value">
+          {tonnes.toFixed(1)}
+          <span className="weigh-unit"> t</span>
+        </div>
+        <div className="weigh-sub">
+          {delivered} of {scoringTuning.totalRocks} rocks on the scale
+        </div>
+      </div>
+    </div>
+  )
+}
+
 /** Results for finished (delivered) and failed (timeout) runs. */
 export function ResultsScreen() {
   const phase = useGameStore((s) => s.phase)
@@ -231,10 +273,11 @@ export function ResultsScreen() {
   const bestStars = useGameStore((s) => s.bestStars)
   const bestScore = useGameStore((s) => s.bestScore)
   const startRun = useGameStore((s) => s.startRun)
+  const [weighed, setWeighed] = useState(phase !== 'finished')
 
-  // Result fanfare + staggered star chimes on mount.
+  // Result fanfare + staggered star chimes once the load has been weighed.
   useEffect(() => {
-    if (!result) return
+    if (!result || !weighed) return
     if (phase === 'failed' || result.stars === 0) {
       sfx.fail()
       return
@@ -245,9 +288,10 @@ export function ResultsScreen() {
     }
     if (result.score.perfect > 0) setTimeout(() => sfx.perfect(), 1700)
     // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [])
+  }, [weighed])
 
   if (!result) return null
+  if (!weighed) return <WeighOverlay delivered={result.delivered} onDone={() => setWeighed(true)} />
 
   const timedOut = phase === 'failed'
   const failedDelivery = !timedOut && result.stars === 0
