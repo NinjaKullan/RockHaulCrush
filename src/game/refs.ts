@@ -51,3 +51,31 @@ export const telemetry = {
   truckX: 0,
   truckY: 0,
 }
+
+/** Floating HUD popups ("CLOSE CALL +75"). Pushed by game systems, drained by the HUD. */
+export type PopupKind = 'near' | 'section' | 'perfect' | 'info'
+export interface Popup {
+  id: number
+  text: string
+  kind: PopupKind
+}
+export const popupQueue: Popup[] = []
+let popupSeq = 0
+export function pushPopup(text: string, kind: PopupKind = 'info'): void {
+  popupQueue.push({ id: ++popupSeq, text, kind })
+}
+
+/** Per-run statistics shown on the results screen. */
+export const runStats = {
+  nearMisses: 0,
+  cleanSections: 0,
+  recoveries: 0,
+  /** m/s */
+  topSpeed: 0,
+}
+export function resetRunStats(): void {
+  runStats.nearMisses = 0
+  runStats.cleanSections = 0
+  runStats.recoveries = 0
+  runStats.topSpeed = 0
+}

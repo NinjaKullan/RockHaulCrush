@@ -1,8 +1,9 @@
 import { useEffect, useState } from 'react'
-import { gameplayTuning, scoringTuning } from '../config/gameTuning'
+import { gameplayTuning, scoreTuning, scoringTuning } from '../config/gameTuning'
 import { initAudio, sfx } from '../game/audio'
 import { isTouchMode, requestImmersive } from '../game/device'
-import { useGameStore } from '../game/store'
+import { useGameStore, type RunResult } from '../game/store'
+import { formatScore } from '../game/scoring'
 
 /** Describes whichever control scheme this device actually has. */
 function ControlsLine() {
@@ -51,6 +52,7 @@ export function TitleScreen() {
   const startRun = useGameStore((s) => s.startRun)
   const bestStars = useGameStore((s) => s.bestStars)
   const bestDelivered = useGameStore((s) => s.bestDelivered)
+  const bestScore = useGameStore((s) => s.bestScore)
   const trackKind = useGameStore((s) => s.trackKind)
   const selectTrack = useGameStore((s) => s.selectTrack)
   return (
@@ -100,7 +102,7 @@ export function TitleScreen() {
       {bestStars > 0 && (
         <div className="title-best">
           Best: {'★'.repeat(bestStars)}
-          {'☆'.repeat(3 - bestStars)} · {bestDelivered} rocks
+          {'☆'.repeat(3 - bestStars)} · {bestDelivered} rocks · {formatScore(bestScore)} pts
         </div>
       )}
       <CareerLine />
@@ -165,11 +167,69 @@ export function PauseMenu() {
   )
 }
 
+/** Counts a number up from 0 to `to` over `ms` milliseconds. */
+function useCountUp(to: number, ms: number, delayMs: number): number {
+  const [v, setV] = useState(0)
+  useEffect(() => {
+    let raf = 0
+    let start = 0
+    const tick = (now: number) => {
+      if (!start) start = now
+      const k = Math.min(1, (now - start) / ms)
+      setV(Math.round(to * (1 - Math.pow(1 - k, 3))))
+      if (k < 1) raf = requestAnimationFrame(tick)
+    }
+    const id = setTimeout(() => {
+      raf = requestAnimationFrame(tick)
+    }, delayMs)
+    return () => {
+      clearTimeout(id)
+      cancelAnimationFrame(raf)
+    }
+  }, [to, ms, delayMs])
+  return v
+}
+
+/** Haul Score breakdown: rows land one by one, the total counts up. */
+function ScoreBreakdownView({ result }: { result: RunResult }) {
+  const b = result.score
+  const rows: { label: string; value: number; hot?: boolean }[] = [
+    { label: `Rocks delivered ${result.delivered} × ${scoreTuning.rockValue}`, value: b.rocks },
+    { label: 'Time bonus', value: b.timeBonus },
+    {
+      label: `Driving · ${result.nearMisses} close call${result.nearMisses === 1 ? '' : 's'}, ${result.cleanSections} clean section${result.cleanSections === 1 ? '' : 's'}`,
+      value: b.driving,
+    },
+  ]
+  if (b.perfect > 0) rows.push({ label: 'PERFECT HAUL', value: b.perfect, hot: true })
+  const total = useCountUp(b.total, 1100, 300 + rows.length * 220)
+  return (
+    <div className="score-card">
+      {rows.map((r, i) => (
+        <div
+          key={r.label}
+          className={`score-row${r.hot ? ' score-row-hot' : ''}`}
+          style={{ animationDelay: `${0.25 + i * 0.22}s` }}
+        >
+          <span>{r.label}</span>
+          <span className="score-row-value">+{formatScore(r.value)}</span>
+        </div>
+      ))}
+      <div className="score-total">
+        <span>HAUL SCORE</span>
+        <span className="score-total-value">{formatScore(total)}</span>
+      </div>
+      {result.newBest && <div className="score-newbest">NEW BEST!</div>}
+    </div>
+  )
+}
+
 /** Results for finished (delivered) and failed (timeout) runs. */
 export function ResultsScreen() {
   const phase = useGameStore((s) => s.phase)
   const result = useGameStore((s) => s.result)
   const bestStars = useGameStore((s) => s.bestStars)
+  const bestScore = useGameStore((s) => s.bestScore)
   const startRun = useGameStore((s) => s.startRun)
 
   // Result fanfare + staggered star chimes on mount.
@@ -183,6 +243,7 @@ export function ResultsScreen() {
     for (let n = 1; n <= result.stars; n++) {
       setTimeout(() => sfx.star(n), 500 + n * 350)
     }
+    if (result.score.perfect > 0) setTimeout(() => sfx.perfect(), 1700)
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [])
 
@@ -216,16 +277,21 @@ export function ResultsScreen() {
         ))}
       </div>
       <p className="results-sub">{sub}</p>
-      {!timedOut && (
-        <p className="results-time">
-          Time remaining: {Math.floor(result.timeLeft / 60)}:
-          {String(Math.floor(result.timeLeft % 60)).padStart(2, '0')}
-        </p>
-      )}
-      {bestStars > 0 && (
+      <ScoreBreakdownView result={result} />
+      <p className="results-time">
+        {!timedOut && (
+          <>
+            Time left {Math.floor(result.timeLeft / 60)}:
+            {String(Math.floor(result.timeLeft % 60)).padStart(2, '0')} ·{' '}
+          </>
+        )}
+        Top speed {result.topSpeed} km/h
+        {result.recoveries > 0 && ` · ${result.recoveries} recover${result.recoveries === 1 ? 'y' : 'ies'}`}
+      </p>
+      {(bestStars > 0 || bestScore > 0) && (
         <p className="results-best">
-          Best: {'★'.repeat(bestStars)}
-          {'☆'.repeat(3 - bestStars)}
+          Best: {bestStars > 0 && `${'★'.repeat(bestStars)}${'☆'.repeat(3 - bestStars)} · `}
+          {formatScore(bestScore)} pts
         </p>
       )}
       <button className="big-button" onClick={startRun} autoFocus>

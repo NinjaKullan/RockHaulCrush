@@ -9,6 +9,7 @@ import { useMemo, useRef } from 'react'
 import { cargoTuning, haulerTuning as H } from '../../config/gameTuning'
 import { course } from '../levels/quarryRun'
 import { mulberry32 } from '../rng'
+import { useHazardRegistry } from '../hazardRegistry'
 import { sfx } from '../audio'
 import { emitParticles } from '../Particles'
 import { gameRefs } from '../refs'
@@ -22,6 +23,7 @@ import { useGameStore } from '../store'
  */
 
 const PARK_Y = -60
+const HAULER_HALF_WIDTH = 0.92
 
 export default function OncomingHauler() {
   const bodies = useRef<(RapierRigidBody | null)[]>([])
@@ -34,6 +36,7 @@ export default function OncomingHauler() {
   const horned = useRef(Array.from({ length: H.count }, () => false))
   const dustAcc = useRef(0)
   const laneRng = useMemo(() => mulberry32(cargoTuning.seed + 555), [])
+  useHazardRegistry(bodies, 'hauler', HAULER_HALF_WIDTH)
 
   useBeforePhysicsStep((world) => {
     const zone = course.trafficZone

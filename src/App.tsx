@@ -7,6 +7,7 @@ import { installTouchProbe, quality } from './game/device'
 import KeyboardManager from './game/KeyboardManager'
 import CameraRig from './game/CameraRig'
 import GameDirector from './game/GameDirector'
+import ScoreSystem from './game/ScoreSystem'
 import Rocks from './game/Rocks'
 import DistantActivity from './game/DistantActivity'
 import QuarryWalls from './game/QuarryWalls'
@@ -74,6 +75,7 @@ export default function App() {
             paused={phase === 'paused'}
           >
             <GameDirector />
+            <ScoreSystem />
             <Terrain />
             <Truck />
             <Rocks />

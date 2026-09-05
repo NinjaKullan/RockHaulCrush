@@ -47,7 +47,8 @@ describe('run lifecycle', () => {
     useGameStore.getState().tickTimer(gameplayTuning.timeLimit + 1)
     const s = useGameStore.getState()
     expect(s.phase).toBe('failed')
-    expect(s.result).toEqual({ delivered: 0, stars: 0, timeLeft: 0 })
+    expect(s.result).toMatchObject({ delivered: 0, stars: 0, timeLeft: 0 })
+    expect(s.result?.score.total).toBe(0)
   })
 
   it('timer does not tick outside playing', () => {
@@ -143,5 +144,31 @@ describe('finish and scoring', () => {
     expect(s.result).toBeNull()
     expect(s.cargo.inBed).toBe(20)
     expect(s.magnetCharges).toBe(magnetTuning.charges)
+  })
+})
+
+describe('haul score', () => {
+  it('accumulates driving points and folds them into the final breakdown', () => {
+    startPlaying()
+    useGameStore.getState().addScore(75)
+    useGameStore.getState().addScore(150.4)
+    expect(useGameStore.getState().score).toBe(225)
+    useGameStore.getState().finish(20)
+    const r = useGameStore.getState().result!
+    expect(r.score.driving).toBe(225)
+    expect(r.score.rocks).toBe(2000)
+    expect(r.score.perfect).toBeGreaterThan(0)
+    expect(r.score.total).toBe(225 + 2000 + r.score.timeBonus + r.score.perfect)
+    expect(r.newBest).toBe(true)
+    expect(useGameStore.getState().bestScore).toBe(r.score.total)
+  })
+
+  it('streak drives the multiplier and resets to ×1 each run', () => {
+    startPlaying()
+    useGameStore.getState().setStreak(2)
+    expect(useGameStore.getState().multiplier).toBe(1.5)
+    useGameStore.getState().startRun()
+    expect(useGameStore.getState().multiplier).toBe(1)
+    expect(useGameStore.getState().score).toBe(0)
   })
 })

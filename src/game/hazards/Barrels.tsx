@@ -3,6 +3,7 @@ import { useMemo, useRef } from 'react'
 import { barrelTuning as B, cargoTuning } from '../../config/gameTuning'
 import { barrelHazard } from '../levels/quarryRun'
 import { mulberry32 } from '../rng'
+import { useHazardRegistry } from '../hazardRegistry'
 
 /**
  * Rolling barrels released at the top of the first climb on a fixed, staggered
@@ -20,6 +21,7 @@ export default function Barrels() {
   const ages = useRef(Array.from({ length: B.count }, () => 0))
   /** Seeded lane picker — deterministic per run, varied per launch. */
   const laneRng = useMemo(() => mulberry32(cargoTuning.seed + 77), [])
+  useHazardRegistry(bodies, 'barrel', B.radius)
 
   useBeforePhysicsStep((world) => {
     const dt = world.timestep

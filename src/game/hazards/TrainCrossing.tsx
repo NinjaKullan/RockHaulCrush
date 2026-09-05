@@ -1,4 +1,5 @@
 import { useFrame } from '@react-three/fiber'
+import { useHazardRegistry } from '../hazardRegistry'
 import {
   CuboidCollider,
   RigidBody,
@@ -46,6 +47,7 @@ function gateProgress(t: number): number {
 export default function TrainCrossing() {
   const cars = useRef<(RapierRigidBody | null)[]>([])
   const gates = useRef<(RapierRigidBody | null)[]>([])
+  useHazardRegistry(cars, 'train', TC.carLength / 2 - 0.15)
   const lightA = useRef<THREE.Mesh>(null)
   const lightB = useRef<THREE.Mesh>(null)
   const clock = useRef(0)

@@ -194,3 +194,24 @@ export function starsForDelivered(delivered: number): number {
   if (delivered >= starThresholds[0]) return 1
   return 0
 }
+
+export const scoreTuning = {
+  /** Points per rock delivered. */
+  rockValue: 100,
+  /** Points per whole second left on the clock at delivery (needs 1+ star). */
+  timeBonusPerSecond: 12,
+  /** Passing a hazard within the near-miss window at speed. */
+  nearMiss: 75,
+  /** Reaching a checkpoint without a single rock leaving the bed. */
+  sectionClear: 150,
+  /** Streak multiplier grows by this per consecutive clean section. */
+  streakStep: 0.25,
+  maxMultiplier: 3,
+  /** Delivering every rock. */
+  perfectHaul: 1000,
+  /** Near miss: lateral clearance window (m) and minimum truck speed (m/s). */
+  nearMissMaxGap: 1.6,
+  nearMissMinSpeed: 6,
+  /** Truck half-width used for clearance maths. */
+  truckHalfWidth: 0.9,
+} as const

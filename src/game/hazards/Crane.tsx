@@ -1,4 +1,5 @@
 import { useFrame } from '@react-three/fiber'
+import { useHazardRegistry } from '../hazardRegistry'
 import {
   CuboidCollider,
   RigidBody,
@@ -27,6 +28,8 @@ function swingAngle(t: number): number {
 
 export default function Crane() {
   const blockBody = useRef<RapierRigidBody>(null)
+  const blockList = useRef<(RapierRigidBody | null)[]>([])
+  useHazardRegistry(blockList, 'crane', CR.blockHalf)
   const pendulumVisual = useRef<THREE.Group>(null)
   const clock = useRef(0)
 
@@ -61,7 +64,10 @@ export default function Crane() {
     <group>
       {/* Kinematic collider block (visual is part of the pendulum group) */}
       <RigidBody
-        ref={blockBody}
+        ref={(el) => {
+          blockBody.current = el
+          blockList.current[0] = el
+        }}
         type="kinematicPosition"
         colliders={false}
         position={[craneHazard.x, pivotY - CR.cableLength, 0]}

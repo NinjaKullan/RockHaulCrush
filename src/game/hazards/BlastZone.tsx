@@ -1,5 +1,6 @@
 import { useFrame } from '@react-three/fiber'
 import { RigidBody, useBeforePhysicsStep, type RapierRigidBody } from '@react-three/rapier'
+import { useHazardRegistry } from '../hazardRegistry'
 import { useMemo, useRef } from 'react'
 import * as THREE from 'three'
 import { blastZone as BZ } from '../levels/quarryRun'
@@ -30,6 +31,7 @@ export default function BlastZone() {
   const armed = useRef(false)
   const joltCooldown = useRef(0)
   const launchRng = useMemo(() => mulberry32(4242), [])
+  useHazardRegistry(bodies, 'rubble', 0.4)
 
   useBeforePhysicsStep((world) => {
     // Hold the cycle until the truck approaches; then the warn phase starts

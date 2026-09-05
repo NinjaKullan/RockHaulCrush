@@ -6,7 +6,8 @@ import {
   starsForDelivered,
 } from '../config/gameTuning'
 import type { CargoCounts } from './cargoRules'
-import { magnet } from './refs'
+import { magnet, resetRunStats, runStats } from './refs'
+import { finalScore, multiplierForStreak, type ScoreBreakdown } from './scoring'
 import { isSoundEnabled, setSoundEnabled } from './audio'
 import { course, selectCourse, type TrackKind } from './levels/quarryRun'
 import { particleSettings } from './Particles'
@@ -37,6 +38,13 @@ export interface RunResult {
   delivered: number
   stars: number
   timeLeft: number
+  score: ScoreBreakdown
+  newBest: boolean
+  nearMisses: number
+  cleanSections: number
+  recoveries: number
+  /** km/h */
+  topSpeed: number
 }
 
 interface GameStore {
@@ -51,6 +59,12 @@ interface GameStore {
   /** Consumed by GameDirector: how many recoveries have been requested. */
   recoverRequests: number
   result: RunResult | null
+  /** Haul Score earned so far this run (driving points only until delivery). */
+  score: number
+  /** Consecutive clean sections; drives the multiplier. */
+  streak: number
+  multiplier: number
+  bestScore: number
   bestStars: number
   bestDelivered: number
   /** Lifetime totals — the "number goes up" hook. */
@@ -74,11 +88,14 @@ interface GameStore {
   activateMagnet: () => void
   setMagnetActive: (active: boolean) => void
   finish: (delivered: number) => void
+  addScore: (points: number) => void
+  setStreak: (streak: number) => void
   setCargo: (c: CargoCounts) => void
   toggleDebug: () => void
 }
 
 const BEST_STARS_KEY = 'rhr-best-stars'
+const BEST_SCORE_KEY = 'rhr-best-score'
 const BEST_DELIVERED_KEY = 'rhr-best-delivered'
 const CAREER_ROCKS_KEY = 'rhr-career-rocks'
 const CAREER_RUNS_KEY = 'rhr-career-runs'
@@ -118,12 +135,32 @@ const freshRun = () => ({
   checkpointIndex: 0,
   recoverRequests: 0,
   result: null as RunResult | null,
+  score: 0,
+  streak: 0,
+  multiplier: 1,
 })
+
+/** Assembles the results payload from the run's live state and stats. */
+function buildResult(s: GameStore, delivered: number, stars: number, timeLeft: number): RunResult {
+  const score = finalScore(s.score, delivered, timeLeft)
+  return {
+    delivered,
+    stars,
+    timeLeft,
+    score,
+    newBest: score.total > s.bestScore && score.total > 0,
+    nearMisses: runStats.nearMisses,
+    cleanSections: runStats.cleanSections,
+    recoveries: runStats.recoveries,
+    topSpeed: Math.round(runStats.topSpeed * 3.6),
+  }
+}
 
 export const useGameStore = create<GameStore>((set, get) => ({
   phase: 'title',
   runId: 0,
   ...freshRun(),
+  bestScore: loadBest(BEST_SCORE_KEY),
   bestStars: loadBest(BEST_STARS_KEY),
   bestDelivered: loadBest(BEST_DELIVERED_KEY),
   careerRocks: loadBest(CAREER_ROCKS_KEY),
@@ -157,8 +194,10 @@ export const useGameStore = create<GameStore>((set, get) => ({
     set({ reducedMotion: next })
   },
 
-  startRun: () =>
-    set((s) => ({ ...freshRun(), phase: 'countdown', runId: s.runId + 1 })),
+  startRun: () => {
+    resetRunStats()
+    set((s) => ({ ...freshRun(), phase: 'countdown', runId: s.runId + 1 }))
+  },
 
   beginPlaying: () => {
     if (get().phase === 'countdown') set({ phase: 'playing' })
@@ -183,7 +222,7 @@ export const useGameStore = create<GameStore>((set, get) => ({
         timeLeft: 0,
         phase: 'failed',
         magnetActive: false,
-        result: { delivered: 0, stars: 0, timeLeft: 0 },
+        result: buildResult(s, 0, 0, 0),
         careerRuns,
       })
     } else {
@@ -198,6 +237,7 @@ export const useGameStore = create<GameStore>((set, get) => ({
     const now = Date.now()
     if (now - lastRecoveryAt < 1200) return
     lastRecoveryAt = now
+    runStats.recoveries++
     set({
       recoverRequests: s.recoverRequests + 1,
       timeLeft: Math.max(0.1, s.timeLeft - gameplayTuning.recoveryPenaltySeconds),
@@ -228,10 +268,14 @@ export const useGameStore = create<GameStore>((set, get) => ({
     const careerRuns = s.careerRuns + 1
     saveBest(CAREER_ROCKS_KEY, careerRocks)
     saveBest(CAREER_RUNS_KEY, careerRuns)
+    const result = buildResult(s, delivered, stars, s.timeLeft)
+    const bestScore = Math.max(s.bestScore, result.score.total)
+    if (bestScore !== s.bestScore) saveBest(BEST_SCORE_KEY, bestScore)
     set({
       phase: 'finished',
       magnetActive: false,
-      result: { delivered, stars, timeLeft: s.timeLeft },
+      result,
+      bestScore,
       bestStars,
       bestDelivered,
       careerRocks,
@@ -240,6 +284,10 @@ export const useGameStore = create<GameStore>((set, get) => ({
   },
 
   setCargo: (c) => set({ cargo: c }),
+
+  addScore: (points) => set((s) => ({ score: s.score + Math.round(points) })),
+
+  setStreak: (streak) => set({ streak, multiplier: multiplierForStreak(streak) }),
 
   toggleDebug: () => set((s) => ({ debugVisible: !s.debugVisible })),
 }))

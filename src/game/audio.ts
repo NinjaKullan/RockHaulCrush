@@ -219,6 +219,22 @@ export const sfx = {
     tone(370, 0.32, 0.14, 'sawtooth', 0.4)
     tone(494, 0.32, 0.1, 'sawtooth', 0.4)
   },
+  /** Air rush of a near miss. */
+  whoosh(): void {
+    noiseBurst({ duration: 0.32, volume: 0.2, filterFrom: 900, filterTo: 4200, type: 'bandpass' })
+  },
+  /** Clean-section chime; pitch climbs with the streak. */
+  sectionClear(streak: number): void {
+    const base = 523 * Math.pow(2, Math.min(5, streak - 1) / 12)
+    tone(base, 0.16, 0.1, 'triangle')
+    tone(base * 1.5, 0.28, 0.1, 'triangle', 0.12)
+  },
+  /** Perfect-haul fanfare. */
+  perfect(): void {
+    const notes = [523, 659, 784, 1047, 1319]
+    notes.forEach((f, i) => tone(f, 0.35, 0.12, 'triangle', i * 0.11))
+    tone(1568, 0.7, 0.1, 'sine', 0.6)
+  },
   countdownBeep(final: boolean): void {
     tone(final ? 880 : 440, final ? 0.35 : 0.15, 0.12, 'square')
   },

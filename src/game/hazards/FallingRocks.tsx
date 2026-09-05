@@ -1,5 +1,6 @@
 import { useFrame } from '@react-three/fiber'
 import { RigidBody, useBeforePhysicsStep, type RapierRigidBody } from '@react-three/rapier'
+import { useHazardRegistry } from '../hazardRegistry'
 import { useEffect, useRef } from 'react'
 import * as THREE from 'three'
 import { fallingRockTuning as F } from '../../config/gameTuning'
@@ -21,6 +22,7 @@ export default function FallingRocks() {
   const clocks = useRef(course.fallingRockSpawns.map(() => -1))
   const armed = useRef(course.fallingRockSpawns.map(() => false))
   const dropped = useRef(course.fallingRockSpawns.map(() => false))
+  useHazardRegistry(bodies, 'boulder', F.radius)
 
   // Boulders start dormant (their bodies would otherwise free-fall on mount).
   useEffect(() => {

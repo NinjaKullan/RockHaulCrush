@@ -1,7 +1,8 @@
 import { useEffect, useRef, useState } from 'react'
 import { magnetTuning, scoringTuning } from '../config/gameTuning'
 import { isTouchMode } from '../game/device'
-import { telemetry } from '../game/refs'
+import { popupQueue, telemetry, type Popup } from '../game/refs'
+import { formatScore } from '../game/scoring'
 import { useGameStore } from '../game/store'
 
 const DIAL_MAX = 60 // km/h at the end of the arc
@@ -95,15 +96,31 @@ export default function HUD() {
   const [speed, setSpeed] = useState(0)
   const [accel, setAccel] = useState(0)
   const [flash, setFlash] = useState(false)
+  const [popups, setPopups] = useState<Popup[]>([])
   const prevInBed = useRef(cargo.inBed)
+  const score = useGameStore((s) => s.score)
+  const multiplier = useGameStore((s) => s.multiplier)
+  const [scoreBump, setScoreBump] = useState(0)
 
   useEffect(() => {
     const id = setInterval(() => {
       setSpeed(Math.round(Math.abs(telemetry.speed) * 3.6))
       setAccel(telemetry.accel)
+      if (popupQueue.length > 0) {
+        const fresh = popupQueue.splice(0, popupQueue.length)
+        setPopups((p) => [...p, ...fresh])
+        setTimeout(() => {
+          setPopups((p) => p.filter((q) => !fresh.includes(q)))
+        }, 1400)
+      }
     }, 100)
     return () => clearInterval(id)
   }, [])
+
+  // Bump the score chip whenever points land.
+  useEffect(() => {
+    if (score > 0) setScoreBump((n) => n + 1)
+  }, [score])
 
   // Flash the cargo chip red when rocks are lost from the bed.
   useEffect(() => {
@@ -145,6 +162,19 @@ export default function HUD() {
       </div>
       <div className={`hud-timer${timeCritical ? ' hud-timer-critical' : ''}`}>
         {minutes}:{String(seconds).padStart(2, '0')}
+      </div>
+      <div className="hud-score" key={scoreBump}>
+        <span className="hud-score-value">{formatScore(score)}</span>
+        <span className={`hud-mult${multiplier > 1 ? ' hud-mult-hot' : ''}`}>
+          ×{multiplier.toFixed(2).replace(/\.?0+$/, '')}
+        </span>
+      </div>
+      <div className="hud-popups">
+        {popups.map((p) => (
+          <div key={p.id} className={`hud-popup hud-popup-${p.kind}`}>
+            {p.text}
+          </div>
+        ))}
       </div>
       <div
         className={`hud-magnet${
