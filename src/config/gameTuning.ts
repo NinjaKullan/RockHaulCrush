@@ -216,6 +216,8 @@ export const scoreTuning = {
   maxMultiplier: 3,
   /** Delivering every rock. */
   perfectHaul: 1000,
+  /** Completing the foreman's bonus objective. */
+  objectiveBonus: 500,
   /** Near miss: lateral clearance window (m) and minimum truck speed (m/s). */
   nearMissMaxGap: 1.6,
   nearMissMinSpeed: 6,

@@ -24,10 +24,25 @@ const shot = (name) => page.screenshot({ path: `${outdir}/${name}.png` })
 const text = async (sel) =>
   (await page.locator(sel).count()) ? page.locator(sel).first().innerText() : '(absent)'
 
+await context.grantPermissions(['clipboard-read', 'clipboard-write']).catch(() => {})
+await page.addInitScript(() => {
+  // Veteran career so paint unlocks and promotion logic get exercised.
+  localStorage.setItem('rhr-career-rocks', '290')
+  localStorage.setItem('rhr-career-runs', '9')
+})
 await page.goto('http://localhost:5173/', { waitUntil: 'networkidle' })
 await page.waitForTimeout(1500)
+console.log('career:', (await text('.career-block')).replace(/\n/g, ' | '))
+console.log('paints:', await page.locator('.paint-swatch').count(), 'locked:', await page.locator('.paint-locked').count())
+await page.locator('.paint-swatch').nth(2).click() // Fire Red (Hauler rank)
+await page.locator('.paint-swatch').nth(5).click() // Onyx — locked, should not take
+console.log('active paint label:', await page.locator('.paint-active').getAttribute('aria-label'))
+await shot('score-0-title')
 await page.click('.big-button')
-await page.waitForTimeout(4200)
+await page.waitForTimeout(700)
+console.log('objective chip:', (await text('.objective-chip')).replace(/\n/g, ' | '))
+await shot('score-0b-countdown')
+await page.waitForTimeout(3500)
 
 // Weave lanes every ~1.6 s at full throttle; collect popups.
 if (mobile) await page.locator('.touch-throttle').dispatchEvent('pointerdown')
@@ -87,5 +102,11 @@ console.log('sub:', await text('.results-sub'))
 console.log('card:', (await text('.score-card')).replace(/\n/g, ' | '))
 console.log('time line:', await text('.results-time'))
 console.log('best:', await text('.results-best'))
+console.log('promotion:', await text('.promotion'))
+await page.locator('.results-actions .mid-button').click()
+await page.waitForTimeout(300)
+console.log('share label:', await text('.results-actions .mid-button'))
+console.log('clipboard:', await page.evaluate(() => navigator.clipboard.readText().catch((e) => 'ERR ' + e)))
+await shot('score-3-results-final')
 console.log('errors:', errors.length ? errors : 'none')
 await browser.close()

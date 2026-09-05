@@ -12,6 +12,7 @@ import { mudTuning, truckTuning as T } from '../config/gameTuning'
 import { course } from './levels/quarryRun'
 import { gameRefs, input, shakeCamera, telemetry } from './refs'
 import { useGameStore } from './store'
+import { paintById } from './career'
 import { setEngine, sfx, stopEngine } from './audio'
 import { emitParticles } from './Particles'
 
@@ -34,10 +35,11 @@ const _imp = new THREE.Vector3()
 
 const AXLE_XS = [T.axleX, -T.axleX]
 
-const BODY_YELLOW = '#f0a93c'
-const BODY_YELLOW_DARK = '#c9882a'
 
 export default function Truck() {
+  const paint = paintById(useGameStore((s) => s.paintId))
+  const BODY_YELLOW = paint.body
+  const BODY_YELLOW_DARK = paint.dark
   const bodyRef = useRef<RapierRigidBody>(null)
   const { rapier } = useRapier()
   const ray = useMemo(

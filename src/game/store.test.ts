@@ -9,7 +9,7 @@ function startPlaying() {
 }
 
 beforeEach(() => {
-  useGameStore.setState({ phase: 'title', bestStars: 0, bestDelivered: 0 })
+  useGameStore.setState({ phase: 'title', bestStars: 0, bestDelivered: 0, bestScore: 0, careerRocks: 0 })
   useGameStore.getState().startRun()
 })
 
@@ -147,6 +147,28 @@ describe('finish and scoring', () => {
   })
 })
 
+describe('career', () => {
+  it('a delivery that crosses a rank threshold reports the promotion', () => {
+    useGameStore.setState({ careerRocks: 290 })
+    startPlaying()
+    useGameStore.getState().finish(20)
+    const r = useGameStore.getState().result!
+    expect(r.promotedTo).toBe('Pit Veteran')
+    expect(useGameStore.getState().careerRocks).toBe(310)
+  })
+
+  it('locked paints cannot be selected', () => {
+    useGameStore.setState({ careerRocks: 0, paintId: 'quarry' })
+    useGameStore.getState().selectPaint('onyx')
+    expect(useGameStore.getState().paintId).toBe('quarry')
+    useGameStore.getState().selectPaint('cat')
+    expect(useGameStore.getState().paintId).toBe('quarry')
+    useGameStore.setState({ careerRocks: 40 })
+    useGameStore.getState().selectPaint('cat')
+    expect(useGameStore.getState().paintId).toBe('cat')
+  })
+})
+
 describe('haul score', () => {
   it('accumulates driving points and folds them into the final breakdown', () => {
     startPlaying()
@@ -158,7 +180,7 @@ describe('haul score', () => {
     expect(r.score.driving).toBe(225)
     expect(r.score.rocks).toBe(2000)
     expect(r.score.perfect).toBeGreaterThan(0)
-    expect(r.score.total).toBe(225 + 2000 + r.score.timeBonus + r.score.perfect)
+    expect(r.score.total).toBe(225 + 2000 + r.score.timeBonus + r.score.perfect + r.score.objective)
     expect(r.newBest).toBe(true)
     expect(useGameStore.getState().bestScore).toBe(r.score.total)
   })

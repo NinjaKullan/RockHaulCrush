@@ -4,6 +4,8 @@ import { initAudio, sfx } from '../game/audio'
 import { isTouchMode, requestImmersive } from '../game/device'
 import { useGameStore, type RunResult } from '../game/store'
 import { formatScore } from '../game/scoring'
+import { PAINTS, RANKS, paintUnlocked, rankFor } from '../game/career'
+import { objectiveForRun } from '../game/objectives'
 
 /** Describes whichever control scheme this device actually has. */
 function ControlsLine() {
@@ -106,19 +108,63 @@ export function TitleScreen() {
         </div>
       )}
       <CareerLine />
+      <PaintRow />
       <SettingsRow />
     </div>
   )
 }
 
-/** Lifetime tally — quietly does a lot of "one more run" work. */
+/** Lifetime tally + rank — quietly does a lot of "one more run" work. */
 function CareerLine() {
   const careerRocks = useGameStore((s) => s.careerRocks)
   const careerRuns = useGameStore((s) => s.careerRuns)
-  if (careerRuns === 0) return null
+  const rank = rankFor(careerRocks)
   return (
-    <div className="career-line">
-      Career: {careerRocks} rocks hauled · {careerRuns} run{careerRuns === 1 ? '' : 's'}
+    <div className="career-block">
+      <div className="career-rank">
+        <span className="career-rank-name">{rank.name}</span>
+        {careerRuns > 0 && (
+          <span className="career-line">
+            {careerRocks} rocks hauled · {careerRuns} run{careerRuns === 1 ? '' : 's'}
+          </span>
+        )}
+      </div>
+      {rank.next ? (
+        <div className="career-progress" title={`${rank.remaining} rocks to ${rank.next.name}`}>
+          <div className="career-progress-fill" style={{ width: `${rank.progress * 100}%` }} />
+          <span className="career-progress-label">
+            {rank.remaining} rocks to {rank.next.name}
+          </span>
+        </div>
+      ) : (
+        <div className="career-line">Top rank — the quarry is yours.</div>
+      )}
+    </div>
+  )
+}
+
+/** Truck paint swatches; locked ones show the rank that opens them. */
+function PaintRow() {
+  const paintId = useGameStore((s) => s.paintId)
+  const careerRocks = useGameStore((s) => s.careerRocks)
+  const selectPaint = useGameStore((s) => s.selectPaint)
+  return (
+    <div className="paint-row">
+      {PAINTS.map((p) => {
+        const unlocked = paintUnlocked(p, careerRocks)
+        return (
+          <button
+            key={p.id}
+            className={`paint-swatch${paintId === p.id ? ' paint-active' : ''}${unlocked ? '' : ' paint-locked'}`}
+            style={{ background: p.body, borderColor: p.dark }}
+            title={unlocked ? p.name : `${p.name} — unlocks at ${RANKS[p.rank].name}`}
+            aria-label={p.name}
+            onClick={() => selectPaint(p.id)}
+          >
+            {!unlocked && <span className="paint-lock">🔒</span>}
+          </button>
+        )
+      })}
     </div>
   )
 }
@@ -126,6 +172,8 @@ function CareerLine() {
 /** 3-2-1-GO countdown; hands control to the player when it ends. */
 export function CountdownOverlay() {
   const beginPlaying = useGameStore((s) => s.beginPlaying)
+  const runId = useGameStore((s) => s.runId)
+  const objective = objectiveForRun(runId)
   const [count, setCount] = useState<number>(gameplayTuning.countdownSeconds)
 
   useEffect(() => {
@@ -144,6 +192,10 @@ export function CountdownOverlay() {
         {count > 0 ? count : 'GO!'}
       </div>
       <div className="countdown-hint">Reach the delivery zone — don't lose the rocks!</div>
+      <div className="objective-chip">
+        <span className="objective-tag">FOREMAN'S BONUS</span>
+        {objective.text} · +{scoreTuning.objectiveBonus}
+      </div>
     </div>
   )
 }
@@ -202,6 +254,11 @@ function ScoreBreakdownView({ result }: { result: RunResult }) {
     },
   ]
   if (b.perfect > 0) rows.push({ label: 'PERFECT HAUL', value: b.perfect, hot: true })
+  rows.push({
+    label: `${result.objectiveMet ? '✓' : '✗'} Bonus: ${result.objectiveText}`,
+    value: b.objective,
+    hot: result.objectiveMet,
+  })
   const total = useCountUp(b.total, 1100, 300 + rows.length * 220)
   return (
     <div className="score-card">
@@ -338,9 +395,62 @@ export function ResultsScreen() {
           {formatScore(bestScore)} pts
         </p>
       )}
-      <button className="big-button" onClick={startRun} autoFocus>
-        ⟲ Play Again
-      </button>
+      {result.promotedTo && (
+        <div className="promotion">
+          PROMOTED · <b>{result.promotedTo}</b>
+        </div>
+      )}
+      <div className="results-actions">
+        <button className="big-button" onClick={startRun} autoFocus>
+          ⟲ Play Again
+        </button>
+        <ShareButton result={result} />
+      </div>
     </div>
+  )
+}
+
+/** Share text for LinkedIn/WhatsApp/etc: Web Share on phones, clipboard elsewhere. */
+function shareText(result: RunResult, trackKind: string, rankName: string): string {
+  const stars = result.stars > 0 ? '★'.repeat(result.stars) + '☆'.repeat(3 - result.stars) : '☆☆☆'
+  const track = trackKind === 'long' ? 'Long Haul' : 'Standard Run'
+  const mm = Math.floor(result.timeLeft / 60)
+  const ss = String(Math.floor(result.timeLeft % 60)).padStart(2, '0')
+  const lines = [
+    `🪨 Rock Haul Rush — ${track}`,
+    `${stars} ${result.delivered}/${scoringTuning.totalRocks} rocks · ${formatScore(result.score.total)} pts · ${mm}:${ss} left`,
+    `🚚 ${result.nearMisses} close call${result.nearMisses === 1 ? '' : 's'} · top speed ${result.topSpeed} km/h · rank: ${rankName}`,
+  ]
+  try {
+    lines.push(`${location.origin}${location.pathname}`)
+  } catch {
+    /* no location (tests) */
+  }
+  return lines.join('\n')
+}
+
+function ShareButton({ result }: { result: RunResult }) {
+  const trackKind = useGameStore((s) => s.trackKind)
+  const careerRocks = useGameStore((s) => s.careerRocks)
+  const [label, setLabel] = useState('📤 Share result')
+  const share = async () => {
+    const text = shareText(result, trackKind, rankFor(careerRocks).name)
+    const nav = navigator as Navigator & { share?: (d: { text: string }) => Promise<void> }
+    try {
+      if (nav.share) {
+        await nav.share({ text })
+        return
+      }
+      await navigator.clipboard.writeText(text)
+      setLabel('✓ Copied!')
+    } catch {
+      setLabel('Copy failed')
+    }
+    setTimeout(() => setLabel('📤 Share result'), 2000)
+  }
+  return (
+    <button className="mid-button" onClick={share}>
+      {label}
+    </button>
   )
 }

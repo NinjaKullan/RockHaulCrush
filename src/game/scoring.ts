@@ -11,6 +11,8 @@ export interface ScoreBreakdown {
   rocks: number
   timeBonus: number
   perfect: number
+  /** Foreman's bonus objective, if met. */
+  objective: number
   total: number
 }
 
@@ -29,12 +31,25 @@ export function isNearMiss(gap: number, speed: number): boolean {
   return gap >= 0 && gap <= S.nearMissMaxGap && speed >= S.nearMissMinSpeed
 }
 
-export function finalScore(driving: number, delivered: number, timeLeft: number): ScoreBreakdown {
+export function finalScore(
+  driving: number,
+  delivered: number,
+  timeLeft: number,
+  objectiveMet = false,
+): ScoreBreakdown {
   const scored = delivered >= scoringTuning.starThresholds[0]
   const rocks = delivered * S.rockValue
   const timeBonus = scored ? Math.floor(Math.max(0, timeLeft)) * S.timeBonusPerSecond : 0
   const perfect = delivered >= scoringTuning.totalRocks ? S.perfectHaul : 0
-  return { driving, rocks, timeBonus, perfect, total: driving + rocks + timeBonus + perfect }
+  const objective = objectiveMet && scored ? S.objectiveBonus : 0
+  return {
+    driving,
+    rocks,
+    timeBonus,
+    perfect,
+    objective,
+    total: driving + rocks + timeBonus + perfect + objective,
+  }
 }
 
 export function formatScore(n: number): string {

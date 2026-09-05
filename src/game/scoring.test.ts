@@ -36,6 +36,8 @@ describe('finalScore', () => {
     expect(b.timeBonus).toBe(40 * S.timeBonusPerSecond)
     expect(b.perfect).toBe(S.perfectHaul)
     expect(b.total).toBe(b.driving + b.rocks + b.timeBonus + b.perfect)
+    expect(finalScore(0, 20, 10, true).objective).toBe(S.objectiveBonus)
+    expect(finalScore(0, 3, 10, true).objective).toBe(0)
   })
   it('gives no time bonus or perfect bonus for a rejected delivery', () => {
     const b = finalScore(100, scoringTuning.starThresholds[0] - 1, 60)

@@ -421,6 +421,137 @@ canvas {
   }
 }
 
+.career-block {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 6px;
+}
+
+.career-rank {
+  display: flex;
+  align-items: baseline;
+  gap: 12px;
+}
+
+.career-rank-name {
+  font-size: 16px;
+  font-weight: 900;
+  letter-spacing: 0.1em;
+  text-transform: uppercase;
+  color: #ffd25e;
+}
+
+.career-progress {
+  position: relative;
+  width: min(80vw, 320px);
+  height: 18px;
+  border-radius: 9px;
+  background: rgba(38, 30, 20, 0.85);
+  border: 1px solid #6b5638;
+  overflow: hidden;
+}
+
+.career-progress-fill {
+  position: absolute;
+  inset: 0 auto 0 0;
+  background: linear-gradient(90deg, #c9882a, #ffd25e);
+  transition: width 0.6s;
+}
+
+.career-progress-label {
+  position: relative;
+  display: block;
+  line-height: 18px;
+  font-size: 11px;
+  font-weight: 700;
+  letter-spacing: 0.04em;
+  color: #fdf3e3;
+  text-shadow: 0 1px 2px rgba(0, 0, 0, 0.6);
+}
+
+.paint-row {
+  display: flex;
+  gap: 10px;
+}
+
+.paint-swatch {
+  position: relative;
+  width: 34px;
+  height: 34px;
+  border-radius: 50%;
+  border: 3px solid;
+  cursor: pointer;
+  padding: 0;
+  box-shadow: 0 2px 6px rgba(30, 20, 8, 0.4);
+  transition: transform 0.15s;
+}
+
+.paint-swatch:hover {
+  transform: scale(1.12);
+}
+
+.paint-active {
+  outline: 3px solid #fdf3e3;
+  outline-offset: 2px;
+}
+
+.paint-locked {
+  opacity: 0.45;
+  cursor: not-allowed;
+}
+
+.paint-lock {
+  position: absolute;
+  inset: 0;
+  display: grid;
+  place-items: center;
+  font-size: 14px;
+}
+
+.objective-chip {
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+  margin-top: 6px;
+  padding: 8px 18px;
+  border-radius: 10px;
+  background: rgba(38, 30, 20, 0.82);
+  border: 1px solid #6b5638;
+  font-size: 15px;
+  color: #fdf3e3;
+  animation: hint-in 0.4s;
+}
+
+.objective-tag {
+  font-size: 11px;
+  font-weight: 900;
+  letter-spacing: 0.2em;
+  color: #ffd25e;
+}
+
+.promotion {
+  font-size: 18px;
+  letter-spacing: 0.12em;
+  color: #fdf3e3;
+  background: linear-gradient(90deg, #c9882a, #d9642f);
+  padding: 6px 18px;
+  border-radius: 10px;
+  animation: star-pop 0.5s 1.8s both;
+}
+
+.promotion b {
+  color: #fff3dc;
+}
+
+.results-actions {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  justify-content: center;
+  gap: 12px;
+}
+
 .weigh-card {
   display: flex;
   flex-direction: column;
@@ -634,6 +765,9 @@ canvas {
   align-items: center;
   justify-content: center;
   gap: 18px;
+  overflow-y: auto;
+  /* Menus may overflow on short phones; let a thumb scroll them. */
+  touch-action: pan-y;
   text-align: center;
   color: #fdf3e3;
   padding: 24px;
@@ -1121,5 +1255,115 @@ canvas {
     width: 44px;
     height: 44px;
     font-size: 17px;
+  }
+}
+
+/* ---------- Short viewports (phones in landscape, small laptops) ---------- */
+
+@media (max-height: 600px) {
+  .screen {
+    gap: 8px;
+    padding: 10px 16px;
+  }
+
+  .screen-title {
+    justify-content: flex-start;
+    padding-top: max(8px, env(safe-area-inset-top));
+  }
+
+  .game-title {
+    font-size: clamp(30px, 6vw, 48px);
+  }
+
+  .game-tagline {
+    font-size: 14px;
+    margin: 0;
+  }
+
+  .title-tutorial {
+    font-size: 12px;
+    line-height: 1.4;
+  }
+
+  .title-tutorial p {
+    margin: 4px 0;
+  }
+
+  .title-tutorial p:nth-of-type(2) {
+    display: none;
+  }
+
+  .controls-line {
+    font-size: 11px;
+  }
+
+  .big-button {
+    font-size: 18px;
+    padding: 8px 22px;
+  }
+
+  .track-button {
+    font-size: 14px;
+    padding: 6px 14px;
+  }
+
+  .paint-swatch {
+    width: 28px;
+    height: 28px;
+  }
+
+  .career-progress {
+    height: 16px;
+  }
+
+  .career-progress-label {
+    line-height: 16px;
+  }
+
+  .screen-heading {
+    font-size: clamp(26px, 5vw, 40px);
+    margin: 0;
+  }
+
+  .stars-row {
+    font-size: clamp(34px, 6vw, 48px);
+  }
+
+  .results-sub {
+    font-size: 15px;
+  }
+
+  .score-card {
+    padding: 4px 12px;
+    gap: 1px;
+  }
+
+  .score-row {
+    font-size: 12px;
+  }
+
+  .score-total {
+    font-size: 13px;
+    margin-top: 2px;
+    padding-top: 4px;
+  }
+
+  .score-total-value {
+    font-size: 18px;
+  }
+
+  .score-newbest {
+    font-size: 12px;
+    margin-top: 0;
+  }
+
+  .promotion {
+    font-size: 14px;
+    padding: 4px 12px;
+  }
+
+  .results-time,
+  .results-best {
+    font-size: 12px;
   }
 }

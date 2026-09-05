@@ -70,6 +70,7 @@ export const runStats = {
   nearMisses: 0,
   cleanSections: 0,
   recoveries: 0,
+  bestStreak: 0,
   /** m/s */
   topSpeed: 0,
 }
@@ -77,6 +78,7 @@ export function resetRunStats(): void {
   runStats.nearMisses = 0
   runStats.cleanSections = 0
   runStats.recoveries = 0
+  runStats.bestStreak = 0
   runStats.topSpeed = 0
 }
 
