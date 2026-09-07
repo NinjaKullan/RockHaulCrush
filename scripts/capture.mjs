@@ -52,7 +52,9 @@ const gameWait = (page, sec, scale) => page.waitForTimeout((sec * 1000) / scale)
 
 const startRun = async (page) => {
   await page.click('.big-button')
-  await page.waitForTimeout(4300) // countdown runs on real timers
+  // The countdown runs on real timers; under load it can take longer than 4 s.
+  while ((await phase(page)) !== 'playing') await page.waitForTimeout(100)
+  await page.waitForTimeout(300)
 }
 /**
  * Full throttle until the truck passes x; keeps the run clock topped up and
