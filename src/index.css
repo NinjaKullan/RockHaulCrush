@@ -1260,6 +1260,21 @@ canvas {
   }
 }
 
+/* ---------- Narrow desktop windows: keep the hint bar off the corner chips ---------- */
+
+@media (max-width: 1180px) {
+  .hud-hints {
+    font-size: 11px;
+    padding: 5px 10px;
+  }
+}
+
+@media (max-width: 1000px) {
+  .hud-hints {
+    display: none;
+  }
+}
+
 /* ---------- Medium-height windows (720p laptops) ---------- */
 
 @media (max-height: 820px) and (min-height: 601px) {
