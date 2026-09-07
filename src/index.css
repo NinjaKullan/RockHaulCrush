@@ -1194,6 +1194,9 @@ canvas {
 
 .rotate-prompt {
   gap: 10px;
+  /* Sits above the title screen, which shares the .screen layer. */
+  z-index: 40;
+  background: rgba(20, 15, 9, 0.94);
 }
 
 .rotate-icon {
@@ -1239,14 +1242,14 @@ canvas {
     display: none;
   }
 
-  /* Hints ride in the top band beside the timer, never over the road. */
+  /* Hints sit in the left column under the magnet chip, never over the road. */
   .hint-toast {
     bottom: auto;
-    top: 8px;
-    left: auto;
-    right: max(120px, calc(env(safe-area-inset-right) + 120px));
+    top: 104px;
+    left: max(10px, env(safe-area-inset-left));
+    right: auto;
     transform: none;
-    max-width: 30vw;
+    max-width: 34vw;
     padding: 6px 10px;
     font-size: 11px;
     line-height: 1.3;
