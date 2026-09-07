@@ -170,13 +170,17 @@ if (segments.has('train')) {
   const S = 0.15
   const page = await newPage({ viewport: { width: 1280, height: 720 }, deviceScaleFactor: 2 }, S)
   await startRun(page)
-  await driveTo(page, 100)
-  await brakeToStop(page)
-  await stage(page)
-  for (let i = 0; i < 12; i++) {
-    await shot(page, `03-train-${String(i).padStart(2, '0')}`)
-    await gameWait(page, 0.35, S)
+  // The train crosses the road roughly 2.4–3.5 s after arming (x = 70), so
+  // shoot on the move from x ≈ 90 as the truck closes in on the gate.
+  await page.keyboard.down('KeyW')
+  while ((await truckX(page)) < 90) {
+    await topUpClock(page)
+    await page.waitForTimeout(40)
   }
+  for (let i = 0; i < 10; i++) {
+    await shot(page, `03-train-${String(i).padStart(2, '0')}`)
+  }
+  await page.keyboard.up('KeyW')
   await page.context().close()
 }
 
