@@ -421,6 +421,17 @@ canvas {
   }
 }
 
+.build-stamp {
+  position: fixed;
+  right: max(8px, env(safe-area-inset-right));
+  bottom: max(6px, env(safe-area-inset-bottom));
+  font-size: 10px;
+  letter-spacing: 0.04em;
+  color: #d8cfc2;
+  opacity: 0.55;
+  pointer-events: none;
+}
+
 .career-block {
   display: flex;
   flex-direction: column;

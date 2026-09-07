@@ -110,6 +110,7 @@ export function TitleScreen() {
       <CareerLine />
       <PaintRow />
       <SettingsRow />
+      <div className="build-stamp">build {__BUILD_STAMP__}</div>
     </div>
   )
 }
