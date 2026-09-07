@@ -19,6 +19,7 @@ const ARM_DISTANCE = 40
 export default function FallingRocks() {
   const bodies = useRef<(RapierRigidBody | null)[]>([])
   const markers = useRef<(THREE.Mesh | null)[]>([])
+  const boulderMeshes = useRef<(THREE.Mesh | null)[]>([])
   const clocks = useRef(course.fallingRockSpawns.map(() => -1))
   const armed = useRef(course.fallingRockSpawns.map(() => false))
   const dropped = useRef(course.fallingRockSpawns.map(() => false))
@@ -73,6 +74,10 @@ export default function FallingRocks() {
       const t = ((clocks.current[i] % F.period) + F.period) % F.period
       const warning = clocks.current[i] > 0 && t < F.warnTime
       marker.visible = warning
+      // The boulder only exists while it is falling or resting — no rock
+      // hovering in the sky between drops.
+      const rock = boulderMeshes.current[i]
+      if (rock) rock.visible = dropped.current[i]
       if (warning) {
         const pulse = 1 + 0.25 * Math.sin(t * 18)
         marker.scale.setScalar(pulse)
@@ -96,7 +101,13 @@ export default function FallingRocks() {
             density={F.density}
             ccd
           >
-            <mesh castShadow>
+            <mesh
+              castShadow
+              visible={false}
+              ref={(el) => {
+                boulderMeshes.current[i] = el
+              }}
+            >
               <dodecahedronGeometry args={[F.radius, 0]} />
               <meshStandardMaterial color="#7d6b5d" flatShading />
             </mesh>
@@ -117,11 +128,6 @@ export default function FallingRocks() {
               transparent
               opacity={0.85}
             />
-          </mesh>
-          {/* Perched crag the rocks fall from — visual anchor overhead */}
-          <mesh position={[s.x, s.groundY + F.dropHeight + 1.2, s.z]} rotation={[0.3, 0.5, 0]}>
-            <dodecahedronGeometry args={[1.6, 0]} />
-            <meshStandardMaterial color="#9a7a50" flatShading />
           </mesh>
         </group>
       ))}

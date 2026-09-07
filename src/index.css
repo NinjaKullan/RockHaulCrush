@@ -763,7 +763,9 @@ canvas {
   display: flex;
   flex-direction: column;
   align-items: center;
-  justify-content: center;
+  /* `safe` keeps the top reachable when the menu is taller than the window. */
+  justify-content: flex-start;
+  justify-content: safe center;
   gap: 18px;
   overflow-y: auto;
   /* Menus may overflow on short phones; let a thumb scroll them. */
@@ -1255,6 +1257,32 @@ canvas {
     width: 44px;
     height: 44px;
     font-size: 17px;
+  }
+}
+
+/* ---------- Medium-height windows (720p laptops) ---------- */
+
+@media (max-height: 820px) and (min-height: 601px) {
+  .screen {
+    gap: 12px;
+    padding: 14px 24px;
+  }
+
+  .game-title {
+    font-size: clamp(36px, 6vw, 60px);
+  }
+
+  .game-tagline {
+    margin: 0;
+  }
+
+  .title-tutorial {
+    font-size: 14px;
+    line-height: 1.45;
+  }
+
+  .title-tutorial p {
+    margin: 6px 0;
   }
 }
 
