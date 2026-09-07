@@ -11,6 +11,7 @@ import { mkdirSync } from 'node:fs'
 import { chromium, devices } from 'playwright'
 
 const out = process.argv[2] ?? 'capture'
+const segments = new Set((process.argv[3] ?? 'hero,phone,gif').split(','))
 mkdirSync(`${out}/frames`, { recursive: true })
 const browser = await chromium.launch({
   executablePath: process.env.CHROMIUM_PATH,
@@ -53,11 +54,29 @@ const startRun = async (page) => {
   await page.click('.big-button')
   await page.waitForTimeout(4300) // countdown runs on real timers
 }
-/** Full throttle until the truck passes x; keeps the run clock topped up. */
+/**
+ * Full throttle until the truck passes x; keeps the run clock topped up and
+ * hops the truck forward if it wedges on a barrier or rubble.
+ */
 async function driveTo(page, x) {
   await page.keyboard.down('KeyW')
+  let lastX = -1e9
+  let lastMove = Date.now()
   while ((await truckX(page)) < x && (await phase(page)) === 'playing') {
     await topUpClock(page)
+    const cur = await truckX(page)
+    if (cur > lastX + 0.5) {
+      lastX = cur
+      lastMove = Date.now()
+    } else if (Date.now() - lastMove > 6000) {
+      await page.evaluate(() => {
+        const b = window.__rhr.gameRefs.truck
+        const t = b.translation()
+        b.setTranslation({ x: t.x + 5, y: t.y + 1.2, z: 0 }, true)
+        b.setLinvel({ x: 4, y: 0, z: 0 }, true)
+      })
+      lastMove = Date.now()
+    }
     await page.waitForTimeout(60)
   }
   await page.keyboard.up('KeyW')
@@ -86,7 +105,7 @@ const stage = (page) =>
   })
 
 // ---------- Desktop hero shots (1280×720 @2x → 2560×1440)
-{
+if (segments.has('hero')) {
   const S = 0.15
   const page = await newPage({ viewport: { width: 1280, height: 720 }, deviceScaleFactor: 2 }, S)
   await shot(page, '01-title')
@@ -100,16 +119,17 @@ const stage = (page) =>
   }
   await page.keyboard.up('KeyW')
 
-  // Train: arms at x=70; stop before the gate; the train crosses ~5 s later.
-  await driveTo(page, 84)
+  // Train: arms at x=70; stop on the flat before the gate (past the ramp
+  // crest, so the truck is in view); the train crosses about 5-8 s after arming.
+  await driveTo(page, 100)
   await brakeToStop(page)
   await stage(page)
-  await gameWait(page, 2.6, S)
-  for (let i = 0; i < 4; i++) {
+  await gameWait(page, 1.4, S)
+  for (let i = 0; i < 5; i++) {
     await shot(page, `03-train-${i}`)
-    await gameWait(page, 0.6, S)
+    await gameWait(page, 0.8, S)
   }
-  await gameWait(page, 3, S)
+  await gameWait(page, 2, S)
 
   // Blast: arms at x=123, detonates 2.2 s later; stop short and catch it.
   await driveTo(page, 128)
@@ -144,7 +164,7 @@ const stage = (page) =>
 }
 
 // ---------- Phone shot (iPhone 13 landscape, touch controls)
-{
+if (segments.has('phone')) {
   const page = await newPage({ ...devices['iPhone 13 landscape'], hasTouch: true }, 0.15)
   await startRun(page)
   await page.locator('.touch-throttle').dispatchEvent('pointerdown')
@@ -154,7 +174,7 @@ const stage = (page) =>
 }
 
 // ---------- GIF/MP4 frames (960×540): the barrel gauntlet and first climb
-{
+if (segments.has('gif')) {
   const S = 0.12
   const page = await newPage({ viewport: { width: 960, height: 540 } }, S)
   await page.click('.big-button')
