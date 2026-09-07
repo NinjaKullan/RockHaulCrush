@@ -177,10 +177,15 @@ if (segments.has('train')) {
     await topUpClock(page)
     await page.waitForTimeout(40)
   }
-  for (let i = 0; i < 10; i++) {
+  // The lowered gate stops the truck; the moment it does, re-seat the cargo
+  // (the gate hit spills it) and fire the burst while the train is crossing.
+  const t0 = Date.now()
+  while ((await speed(page)) > 1.5 && Date.now() - t0 < 4000 / S) await page.waitForTimeout(40)
+  await page.keyboard.up('KeyW')
+  await stage(page)
+  for (let i = 0; i < 8; i++) {
     await shot(page, `03-train-${String(i).padStart(2, '0')}`)
   }
-  await page.keyboard.up('KeyW')
   await page.context().close()
 }
 
