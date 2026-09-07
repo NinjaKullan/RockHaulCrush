@@ -40,7 +40,7 @@ const startRun = async (page) => {
 /** Full throttle until the truck passes x, then release. */
 async function driveTo(page, x) {
   await page.keyboard.down('KeyW')
-  while ((await truckX(page)) < x) await page.waitForTimeout(60)
+  while ((await truckX(page)) < x && (await phase(page)) === 'playing') await page.waitForTimeout(60)
   await page.keyboard.up('KeyW')
 }
 async function brakeToStop(page) {
@@ -49,6 +49,28 @@ async function brakeToStop(page) {
   await page.keyboard.up('KeyS')
 }
 const shot = (page, name, opts = {}) => page.screenshot({ path: `${out}/${name}.png`, ...opts })
+const phase = (page) => page.evaluate(() => window.__rhr.store.getState().phase)
+/**
+ * Staging for hero shots: software rendering at 2× burns the run clock and
+ * the bot sheds cargo, so top the timer up and re-seat every rock in the bed
+ * (truck must be stopped and level).
+ */
+const stage = (page) =>
+  page.evaluate(() => {
+    const { store, cargo, gameRefs } = window.__rhr
+    store.setState({ timeLeft: 98 })
+    const t = gameRefs.truck.translation()
+    for (let i = 0; i < cargo.states.length; i++) {
+      const b = cargo.bodies[i]
+      const o = cargo.bedOffsets[i]
+      if (!b || !o) continue
+      cargo.states[i] = 'inBed'
+      b.setTranslation({ x: t.x + o[0], y: t.y + o[1], z: t.z + o[2] }, true)
+      b.setLinvel({ x: 0, y: 0, z: 0 }, true)
+      b.setAngvel({ x: 0, y: 0, z: 0 }, true)
+    }
+    store.getState().setCargo({ inBed: cargo.states.length, recoverable: 0, lost: 0, delivered: 0 })
+  })
 
 // ---------- Desktop hero shots (1280×720 @2x → 2560×1440)
 {
@@ -58,8 +80,8 @@ const shot = (page, name, opts = {}) => page.screenshot({ path: `${out}/${name}.
   await startRun(page)
   // Barrel gauntlet: a few frames, keep the best-looking later.
   await page.keyboard.down('KeyW')
-  for (let i = 0; i < 6; i++) {
-    while ((await truckX(page)) < 14 + i * 5) await page.waitForTimeout(50)
+  for (let i = 0; i < 3; i++) {
+    while ((await truckX(page)) < 12 + i * 4) await page.waitForTimeout(50)
     await shot(page, `02-barrels-${i}`)
   }
   await page.keyboard.up('KeyW')
@@ -67,7 +89,8 @@ const shot = (page, name, opts = {}) => page.screenshot({ path: `${out}/${name}.
   // Train: arm at x=70, coast, brake before the gate, catch the train passing.
   await driveTo(page, 84)
   await brakeToStop(page)
-  await page.waitForTimeout(2200)
+  await stage(page)
+  await page.waitForTimeout(1800)
   for (let i = 0; i < 4; i++) {
     await shot(page, `03-train-${i}`)
     await page.waitForTimeout(700)
@@ -77,7 +100,8 @@ const shot = (page, name, opts = {}) => page.screenshot({ path: `${out}/${name}.
   // Blast: arm at x=123, stop short of the face, catch detonation.
   await driveTo(page, 128)
   await brakeToStop(page)
-  await page.waitForTimeout(600)
+  await stage(page)
+  await page.waitForTimeout(400)
   for (let i = 0; i < 5; i++) {
     await shot(page, `04-blast-${i}`)
     await page.waitForTimeout(450)
@@ -86,6 +110,7 @@ const shot = (page, name, opts = {}) => page.screenshot({ path: `${out}/${name}.
   // Traffic: arm at x=254; stop inside the zone and let a hauler come at us.
   await driveTo(page, 296)
   await brakeToStop(page)
+  await stage(page)
   for (let i = 0; i < 6; i++) {
     await shot(page, `05-traffic-${i}`)
     await page.waitForTimeout(600)
@@ -94,6 +119,7 @@ const shot = (page, name, opts = {}) => page.screenshot({ path: `${out}/${name}.
   // Weighbridge + results: park on the pad, then stage a perfect delivery.
   await driveTo(page, 340)
   await brakeToStop(page)
+  await stage(page)
   await page.evaluate(() => window.__rhr.store.getState().finish(20))
   await page.waitForTimeout(1300)
   await shot(page, '06-weighbridge')
