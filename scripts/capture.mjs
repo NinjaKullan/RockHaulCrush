@@ -163,6 +163,21 @@ if (segments.has('hero')) {
   await page.context().close()
 }
 
+// ---------- Train burst: stop before the gate and fire a dozen frames
+if (segments.has('train')) {
+  const S = 0.15
+  const page = await newPage({ viewport: { width: 1280, height: 720 }, deviceScaleFactor: 2 }, S)
+  await startRun(page)
+  await driveTo(page, 100)
+  await brakeToStop(page)
+  await stage(page)
+  for (let i = 0; i < 12; i++) {
+    await shot(page, `03-train-${String(i).padStart(2, '0')}`)
+    await gameWait(page, 0.35, S)
+  }
+  await page.context().close()
+}
+
 // ---------- Phone shot (iPhone 13 landscape, touch controls)
 if (segments.has('phone')) {
   const page = await newPage({ ...devices['iPhone 13 landscape'], hasTouch: true }, 0.15)
@@ -175,7 +190,7 @@ if (segments.has('phone')) {
 
 // ---------- GIF/MP4 frames (960×540): the barrel gauntlet and first climb
 if (segments.has('gif')) {
-  const S = 0.12
+  const S = 0.06
   const page = await newPage({ viewport: { width: 960, height: 540 } }, S)
   await page.click('.big-button')
   await page.waitForTimeout(3600) // catch the "GO!" beat
@@ -183,7 +198,7 @@ if (segments.has('gif')) {
   let i = 0
   let side = 0
   let last = 0
-  while (i < 110 && (await truckX(page)) < 70) {
+  while (i < 140 && (await truckX(page)) < 78) {
     await topUpClock(page)
     await page.screenshot({ path: `${out}/frames/f${String(i++).padStart(3, '0')}.png` })
     // Weave lanes every ~1.3 game-seconds so the truck threads the drums.
